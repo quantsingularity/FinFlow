@@ -1,4 +1,4 @@
-# FinFlow — Code Repository
+# FinFlow - Code Repository
 
 This repository is structured into two top-level directories:
 
