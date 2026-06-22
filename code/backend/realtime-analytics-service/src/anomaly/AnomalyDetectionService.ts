@@ -54,7 +54,6 @@ export class AnomalyDetectionService extends EventEmitter {
       db: config.redis.db,
       keyPrefix: config.redis.keyPrefix + "anomaly:",
       maxRetriesPerRequest: config.redis.maxRetriesPerRequest,
-      retryDelayOnFailover: config.redis.retryDelayOnFailover,
       enableReadyCheck: config.redis.enableReadyCheck,
       lazyConnect: config.redis.lazyConnect,
     });
@@ -143,6 +142,8 @@ export class AnomalyDetectionService extends EventEmitter {
             .movingAverageWindow,
         dataPoints: [],
         lastUpdated: Date.now(),
+        lastTrained: Date.now(),
+        isActive: true,
         isCalibrated: false,
       };
 
@@ -168,6 +169,7 @@ export class AnomalyDetectionService extends EventEmitter {
         trainingData: [],
         isTrained: false,
         lastTrained: 0,
+        isActive: true,
       };
 
       this.isolationForests.set(modelType, model);
@@ -230,10 +232,13 @@ export class AnomalyDetectionService extends EventEmitter {
       const profiles = await profilesCollection.find({}).toArray();
 
       for (const profile of profiles) {
-        this.userProfiles.set(profile.userId, profile);
+        this.userProfiles.set(
+          profile.userId,
+          profile as unknown as RiskProfile,
+        );
       }
 
-      logger.info(`Loaded ${profiles.size} user risk profiles`);
+      logger.info(`Loaded ${profiles.length} user risk profiles`);
     } catch (error) {
       logger.warn("No user profiles found, starting fresh");
     }
@@ -915,7 +920,7 @@ export class AnomalyDetectionService extends EventEmitter {
 
       // Extract features from training data
       const features = trainingData.map((data) =>
-        this.extractPatternFeatures(data),
+        this.extractPatternFeatures(data as unknown as AnalyticsMetrics),
       );
 
       // Update model (in real implementation, use actual ML library)
@@ -1099,7 +1104,7 @@ export class AnomalyDetectionService extends EventEmitter {
         .limit(100)
         .toArray();
 
-      return alerts;
+      return alerts as unknown as AnomalyAlert[];
     } catch (error) {
       logger.error("Error getting active alerts:", error);
       return [];
@@ -1117,7 +1122,7 @@ export class AnomalyDetectionService extends EventEmitter {
     try {
       const alert = this.activeAlerts.get(alertId);
       if (alert) {
-        alert.status = status;
+        alert.status = status as AnomalyAlert["status"];
         await this.mongodb
           .collection("anomaly_alerts")
           .updateOne({ id: alertId }, { $set: { status } });

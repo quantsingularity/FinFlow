@@ -211,9 +211,10 @@ class AnalyticsService {
     if (!historicalData || historicalData.length < 2) return 0;
     let totalGrowth = 0;
     for (let i = 1; i < historicalData.length; i++) {
-      const prev = historicalData[i - 1].amount;
+      const prev = Number(historicalData[i - 1].amount) || 0;
+      const curr = Number(historicalData[i].amount) || 0;
       if (prev > 0) {
-        totalGrowth += (historicalData[i].amount - prev) / prev;
+        totalGrowth += (curr - prev) / prev;
       }
     }
     return totalGrowth / (historicalData.length - 1);
@@ -223,11 +224,11 @@ class AnalyticsService {
     incomeStatement: Record<string, unknown>,
     balanceSheet: Record<string, unknown>,
   ): Record<string, unknown> {
-    const netIncome = incomeStatement.netIncome || 0;
-    const totalAssets = balanceSheet.totalAssets || 0;
-    const totalLiabilities = balanceSheet.totalLiabilities || 0;
-    const totalEquity = balanceSheet.totalEquity || 0;
-    const totalRevenue = incomeStatement.totalRevenue || 0;
+    const netIncome = Number(incomeStatement.netIncome) || 0;
+    const totalAssets = Number(balanceSheet.totalAssets) || 0;
+    const totalLiabilities = Number(balanceSheet.totalLiabilities) || 0;
+    const totalEquity = Number(balanceSheet.totalEquity) || 0;
+    const totalRevenue = Number(incomeStatement.totalRevenue) || 0;
 
     const returnOnAssets =
       totalAssets > 0 ? (netIncome / totalAssets) * 100 : 0;
@@ -238,7 +239,9 @@ class AnalyticsService {
     const debtToEquityRatio =
       totalEquity > 0 ? totalLiabilities / totalEquity : 0;
 
-    const currentAssets = (balanceSheet.assetItems || [])
+    const currentAssets = (
+      (balanceSheet.assetItems as Array<Record<string, unknown>>) || []
+    )
       .filter((item: Record<string, unknown>) =>
         String(item["accountCode"] || "").startsWith("1"),
       )
@@ -247,7 +250,9 @@ class AnalyticsService {
           sum + ((item["amount"] as number) ?? 0),
         0,
       );
-    const currentLiabilities = (balanceSheet.liabilityItems || [])
+    const currentLiabilities = (
+      (balanceSheet.liabilityItems as Array<Record<string, unknown>>) || []
+    )
       .filter((item: Record<string, unknown>) =>
         String(item["accountCode"] || "").startsWith("2"),
       )
@@ -259,7 +264,9 @@ class AnalyticsService {
     const currentRatio =
       currentLiabilities > 0 ? currentAssets / currentLiabilities : 0;
 
-    const inventory = (balanceSheet.assetItems || [])
+    const inventory = (
+      (balanceSheet.assetItems as Array<Record<string, unknown>>) || []
+    )
       .filter((item: Record<string, unknown>) =>
         String(item["accountCode"] || "").startsWith("12"),
       )
@@ -292,9 +299,9 @@ class AnalyticsService {
     let totalAmount = 0;
 
     for (const t of transactions) {
-      const cat = t.category || "Uncategorized";
-      categoryMap[cat] = (categoryMap[cat] || 0) + (t.amount || 0);
-      totalAmount += t.amount || 0;
+      const cat = String(t.category || "Uncategorized");
+      categoryMap[cat] = (categoryMap[cat] || 0) + (Number(t.amount) || 0);
+      totalAmount += Number(t.amount) || 0;
       const dateStr =
         t.date instanceof Date
           ? t.date.toISOString().split("T")[0]

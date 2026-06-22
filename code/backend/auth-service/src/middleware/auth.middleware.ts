@@ -12,9 +12,10 @@ export const authenticate = (
     }
 
     if (!user) {
-      return res
+      res
         .status(401)
         .json({ message: "Unauthorized: Invalid or expired token" });
+      return;
     }
 
     // Attach user to request
@@ -27,15 +28,15 @@ export const authenticate = (
 export const authorize = (roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user) {
-      return res
+      res
         .status(401)
         .json({ message: "Unauthorized: Authentication required" });
+      return;
     }
 
     if (!roles.includes(req.user.role as string)) {
-      return res
-        .status(403)
-        .json({ message: "Forbidden: Insufficient permissions" });
+      res.status(403).json({ message: "Forbidden: Insufficient permissions" });
+      return;
     }
 
     next();
@@ -49,15 +50,13 @@ export const authorizeAdmin = (
   next: NextFunction,
 ): void => {
   if (!req.user) {
-    return res
-      .status(401)
-      .json({ message: "Unauthorized: Authentication required" });
+    res.status(401).json({ message: "Unauthorized: Authentication required" });
+    return;
   }
 
   if (req.user.role !== "ADMIN") {
-    return res
-      .status(403)
-      .json({ message: "Forbidden: Admin access required" });
+    res.status(403).json({ message: "Forbidden: Admin access required" });
+    return;
   }
 
   next();

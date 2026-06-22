@@ -52,6 +52,7 @@ class TestTransactionDatabase(unittest.TestCase):
         mock_row._asdict.return_value = self.transaction_data
         mock_session.execute.return_value.fetchone.return_value = mock_row
         self.db.Session = MagicMock(return_value=mock_session)
+        self.db.ReadSession = MagicMock(return_value=mock_session)
 
         result = self.db.get_transaction("tx-12345")
 
@@ -64,6 +65,7 @@ class TestTransactionDatabase(unittest.TestCase):
         mock_session.__exit__ = MagicMock(return_value=False)
         mock_session.execute.return_value.fetchone.return_value = None
         self.db.Session = MagicMock(return_value=mock_session)
+        self.db.ReadSession = MagicMock(return_value=mock_session)
 
         result = self.db.get_transaction("tx-nonexistent")
 
@@ -86,14 +88,17 @@ class TestTransactionDatabase(unittest.TestCase):
         mock_session = MagicMock()
         mock_session.__enter__ = MagicMock(return_value=mock_session)
         mock_session.__exit__ = MagicMock(return_value=False)
+        mock_session.execute.return_value.rowcount = 3
         self.db.Session = MagicMock(return_value=mock_session)
 
         batch = [
             {**self.transaction_data, "transaction_id": f"tx-{i}"} for i in range(3)
         ]
-        results = self.db.create_transaction_batch(batch)
+        # create_transaction_batch returns a (batch_id, rows_inserted) tuple.
+        batch_id, rows_inserted = self.db.create_transaction_batch(batch)
 
-        self.assertEqual(len(results), 3)
+        self.assertIsNotNone(batch_id)
+        self.assertEqual(rows_inserted, 3)
         mock_session.commit.assert_called_once()
 
 

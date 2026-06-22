@@ -9,6 +9,7 @@ import { getDatabase } from "../config/database";
 import { getRedis } from "../config/redis";
 import {
   DataIsolationStrategy,
+  IsolationStrategyDescriptor,
   BulkOperation,
   DataExportOptions,
   DataValidationRule,
@@ -18,7 +19,8 @@ export class DataIsolationService extends EventEmitter {
   private db!: Pool;
   private redis!: Redis;
   private isInitialized: boolean = false;
-  private isolationStrategies: Map<string, DataIsolationStrategy> = new Map();
+  private isolationStrategies: Map<string, IsolationStrategyDescriptor> =
+    new Map();
   private tenantDatabases: Map<string, Pool> = new Map();
   private validationRules: Map<string, DataValidationRule[]> = new Map();
 
@@ -42,7 +44,7 @@ export class DataIsolationService extends EventEmitter {
   }
 
   private async loadIsolationStrategies(): Promise<void> {
-    const strategies: Record<string, DataIsolationStrategy> = {
+    const strategies: Record<string, IsolationStrategyDescriptor> = {
       schema: {
         type: "schema",
         description: "Each tenant gets their own database schema",
@@ -369,5 +371,29 @@ export class DataIsolationService extends EventEmitter {
       query += ` LIMIT $${vals.length}`;
     }
     return { query, values: vals };
+  }
+
+  // NOTE: The following operations are declared in the data isolation API
+  // (wired in index.ts) but were never implemented. They are missing
+  // features, not bugs. Each throws a clear NotImplemented error so the
+  // gap is explicit at runtime rather than silently absent. See FIXES.md.
+  async updateData(...args: any[]): Promise<any> {
+    throw new Error("DataIsolationService.updateData is not implemented");
+  }
+
+  async deleteData(...args: any[]): Promise<any> {
+    throw new Error("DataIsolationService.deleteData is not implemented");
+  }
+
+  async bulkOperations(...args: any[]): Promise<any> {
+    throw new Error("DataIsolationService.bulkOperations is not implemented");
+  }
+
+  async exportData(...args: any[]): Promise<any> {
+    throw new Error("DataIsolationService.exportData is not implemented");
+  }
+
+  async cleanup(...args: any[]): Promise<any> {
+    throw new Error("DataIsolationService.cleanup is not implemented");
   }
 }

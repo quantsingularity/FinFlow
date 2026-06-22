@@ -1,6 +1,7 @@
 import os
 import sys
 import unittest
+import uuid
 from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../src"))
@@ -20,7 +21,7 @@ from validation import BatchTransactionValidator, TransactionValidator
 
 def make_transaction(**kwargs):
     defaults = dict(
-        transaction_id="tx-12345",
+        transaction_id="123e4567-e89b-12d3-a456-426614174000",
         source_account_id="account-123",
         destination_account_id="account-456",
         amount=1000.0,
@@ -76,7 +77,9 @@ class TestTransactionValidator(unittest.TestCase):
             self.assertTrue(any(e.code == "INVALID_AMOUNT" for e in result.errors))
 
     def test_validate_high_value_transaction(self):
-        high_value_tx = make_transaction(transaction_id="tx-highval", amount=100000.0)
+        high_value_tx = make_transaction(
+            transaction_id=str(uuid.uuid4()), amount=100000.0
+        )
         result = self.validator.validate_transaction(high_value_tx, CONTEXT)
         self.assertIsInstance(result, ValidationResult)
         self.assertGreater(result.risk_score, 0.0)
@@ -104,14 +107,13 @@ class TestTransactionValidator(unittest.TestCase):
 
     def test_batch_validation(self):
         batch_validator = BatchTransactionValidator(self.validator)
-        transactions = [
-            make_transaction(transaction_id="tx-1"),
-            make_transaction(transaction_id="tx-2", amount=500.0),
-        ]
+        tx1 = make_transaction(transaction_id=str(uuid.uuid4()))
+        tx2 = make_transaction(transaction_id=str(uuid.uuid4()), amount=500.0)
+        transactions = [tx1, tx2]
         results = batch_validator.validate_batch(transactions, CONTEXT)
         self.assertEqual(len(results), 2)
-        self.assertIn("tx-1", results)
-        self.assertIn("tx-2", results)
+        self.assertIn(tx1.transaction_id, results)
+        self.assertIn(tx2.transaction_id, results)
 
 
 class TestBatchTransactionValidator(unittest.TestCase):
@@ -121,7 +123,7 @@ class TestBatchTransactionValidator(unittest.TestCase):
         self.mock_validator = MagicMock()
         self.batch_validator = BatchTransactionValidator(self.mock_validator)
         self.transactions = [
-            make_transaction(transaction_id=f"tx-{i}", amount=1000.0 * (i + 1))
+            make_transaction(transaction_id=str(uuid.uuid4()), amount=1000.0 * (i + 1))
             for i in range(3)
         ]
         self.context = {"user_id": "user-123"}
@@ -144,8 +146,10 @@ class TestBatchTransactionValidator(unittest.TestCase):
             self.assertTrue(results[tx.transaction_id].is_valid)
 
     def test_batch_with_mixed_results(self):
+        invalid_id = self.transactions[1].transaction_id
+
         def side_effect(tx, ctx):
-            if tx.transaction_id == "tx-1":
+            if tx.transaction_id == invalid_id:
                 return MagicMock(
                     is_valid=False,
                     risk_score=0.7,
@@ -164,9 +168,9 @@ class TestBatchTransactionValidator(unittest.TestCase):
         self.mock_validator.validate_transaction.side_effect = side_effect
         results = self.batch_validator.validate_batch(self.transactions, self.context)
         self.assertEqual(len(results), 3)
-        self.assertTrue(results["tx-0"].is_valid)
-        self.assertFalse(results["tx-1"].is_valid)
-        self.assertTrue(results["tx-2"].is_valid)
+        self.assertTrue(results[self.transactions[0].transaction_id].is_valid)
+        self.assertFalse(results[self.transactions[1].transaction_id].is_valid)
+        self.assertTrue(results[self.transactions[2].transaction_id].is_valid)
 
 
 if __name__ == "__main__":

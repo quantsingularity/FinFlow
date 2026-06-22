@@ -1,5 +1,5 @@
-import { Express } from "express";
+import { Application } from "express";
 
-export const swaggerSetup = (app: Express): void => {
+export const swaggerSetup = (app: Application): void => {
   // Swagger setup placeholder
 };

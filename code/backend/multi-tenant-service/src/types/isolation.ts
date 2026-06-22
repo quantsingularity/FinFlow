@@ -5,6 +5,15 @@ export enum DataIsolationStrategy {
   ISOLATED_SCHEMA = "ISOLATED_SCHEMA",
 }
 
+export interface IsolationStrategyDescriptor {
+  type: string;
+  description: string;
+  implementation: string;
+  security_level: string;
+  performance_impact: string;
+  complexity: string;
+}
+
 export interface TenantDataAccess {
   tenantId: string;
   schemaName?: string;
@@ -34,12 +43,15 @@ export interface DataExportOptions {
 }
 
 export interface DataValidationRule {
-  ruleId: string;
-  entity: string;
   field: string;
-  validationType: string;
-  params?: Record<string, any>;
-  errorMessage: string;
+  type: string;
+  required?: boolean;
+  unique?: boolean;
+  min?: number;
+  max?: number;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
 }
 
 export interface DataEncryption {

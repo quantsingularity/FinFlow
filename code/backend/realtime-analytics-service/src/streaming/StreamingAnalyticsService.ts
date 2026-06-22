@@ -13,7 +13,6 @@ import {
   TransactionEvent,
   PaymentEvent,
   AnalyticsMetrics,
-  StreamingWindow,
   AggregationResult,
   RealtimeInsight,
 } from "../types/analytics";
@@ -78,7 +77,6 @@ export class StreamingAnalyticsService extends EventEmitter {
       db: config.redis.db,
       keyPrefix: config.redis.keyPrefix,
       maxRetriesPerRequest: config.redis.maxRetriesPerRequest,
-      retryDelayOnFailover: config.redis.retryDelayOnFailover,
       enableReadyCheck: config.redis.enableReadyCheck,
       lazyConnect: config.redis.lazyConnect,
     });

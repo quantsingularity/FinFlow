@@ -4,21 +4,25 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../src"))
 
 from typing import Any
-from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
-from main import app
+from main import app, get_current_user
 
 client = TestClient(app)
 
 
 @pytest.fixture(autouse=True)
 def mock_jwt_validation() -> Any:
-    with patch(
-        "main.get_current_user", return_value={"sub": "test-user", "role": "USER"}
-    ):
-        yield
+    # FastAPI binds dependencies at route registration, so patching the module
+    # attribute does not affect already-registered routes. Use dependency_overrides,
+    # which is the supported mechanism for replacing a dependency in tests.
+    app.dependency_overrides[get_current_user] = lambda: {
+        "sub": "test-user",
+        "role": "USER",
+    }
+    yield
+    app.dependency_overrides.pop(get_current_user, None)
 
 
 def test_health_check() -> Any:

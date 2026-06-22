@@ -7,6 +7,19 @@ export interface Tenant {
   settings?: TenantSettings;
   createdAt: Date;
   updatedAt: Date;
+  // Persistence-layer (snake_case) and extended fields populated from the
+  // tenant store. Optional because not every code path sets them.
+  domain?: string;
+  subdomain?: string;
+  tier?: string;
+  created_at?: Date;
+  updated_at?: Date;
+  created_by?: string;
+  updated_by?: string;
+  metadata?: Record<string, unknown>;
+  billing_info?: Record<string, unknown>;
+  subscription_info?: Record<string, unknown>;
+  isolation_type?: string;
 }
 
 export interface TenantSettings {
@@ -49,6 +62,14 @@ export interface TenantCreationRequest {
   adminEmail: string;
   adminName?: string;
   settings?: Partial<TenantSettings>;
+  subdomain?: string;
+  domain?: string;
+  tier?: string;
+  created_by?: string;
+  metadata?: Record<string, unknown>;
+  billing_info?: Record<string, unknown>;
+  subscription_info?: Record<string, unknown>;
+  isolation_type?: string;
 }
 
 export interface TenantUpdateRequest {
@@ -56,6 +77,12 @@ export interface TenantUpdateRequest {
   plan?: string;
   status?: Tenant["status"];
   settings?: Partial<TenantSettings>;
+  domain?: string;
+  tier?: string;
+  metadata?: Record<string, unknown>;
+  billing_info?: Record<string, unknown>;
+  subscription_info?: Record<string, unknown>;
+  updated_by?: string;
 }
 
 export interface TenantSubscription {

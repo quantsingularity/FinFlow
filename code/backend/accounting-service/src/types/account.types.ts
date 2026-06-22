@@ -1,9 +1,10 @@
-export type AccountType =
-  | "ASSET"
-  | "LIABILITY"
-  | "EQUITY"
-  | "REVENUE"
-  | "EXPENSE";
+export enum AccountType {
+  ASSET = "ASSET",
+  LIABILITY = "LIABILITY",
+  EQUITY = "EQUITY",
+  REVENUE = "REVENUE",
+  EXPENSE = "EXPENSE",
+}
 
 export interface Account {
   id: string;

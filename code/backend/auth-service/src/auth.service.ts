@@ -262,7 +262,7 @@ class AuthService {
     if (!/[0-9]/.test(password)) {
       throw new BadRequestError("Password must contain at least one number");
     }
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
       throw new BadRequestError(
         "Password must contain at least one special character",
       );

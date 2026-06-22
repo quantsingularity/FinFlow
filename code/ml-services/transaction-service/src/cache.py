@@ -297,8 +297,11 @@ class TransactionCache:
         try:
             data = self.redis.get(key)
             if data:
-                # Assuming data is stored as bytes, decode it before loading JSON
-                return json.loads(data.decode("utf-8"))
+                # Redis is configured with decode_responses=True, so values come
+                # back as str. Handle both str and bytes defensively.
+                if isinstance(data, (bytes, bytearray)):
+                    data = data.decode("utf-8")
+                return json.loads(data)
             return None
         except RedisError as e:
             logger.error(f"Redis error when getting {key}: {e}")

@@ -1,4 +1,11 @@
-export type InvoiceStatus = "DRAFT" | "SENT" | "PAID" | "OVERDUE" | "CANCELLED";
+export enum InvoiceStatus {
+  DRAFT = "DRAFT",
+  SENT = "SENT",
+  PENDING = "PENDING",
+  PAID = "PAID",
+  OVERDUE = "OVERDUE",
+  CANCELLED = "CANCELLED",
+}
 
 export interface Invoice {
   id: string;

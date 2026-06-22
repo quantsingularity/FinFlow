@@ -1,6 +1,6 @@
 import { EventEmitter } from "events";
 import { Pool, PoolClient } from "pg";
-import { QueryStream } from "pg-query-stream";
+import QueryStream from "pg-query-stream";
 import winston from "winston";
 import { Readable } from "stream";
 

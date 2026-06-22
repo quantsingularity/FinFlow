@@ -7,13 +7,21 @@ export interface QueryOptimization {
   appliedAt?: Date;
 }
 
+export interface IndexImpactAnalysis {
+  currentCost: number;
+  estimatedCost: number;
+  affectedQueries: number;
+  storageOverhead: number;
+}
+
 export interface IndexRecommendation {
-  table: string;
-  columns: string[];
-  indexType: "BTREE" | "HASH" | "GIN" | "GIST";
-  reason: string;
-  estimatedImpact: number;
-  created?: boolean;
+  tableName: string;
+  columnNames: string[];
+  indexType: "btree" | "hash" | "gin" | "gist";
+  estimatedBenefit: number;
+  queryPatterns: string[];
+  status: "pending" | "applied" | "rejected";
+  impactAnalysis: IndexImpactAnalysis;
 }
 
 export interface PartitionStrategy {
@@ -33,18 +41,25 @@ export interface DatabaseStats {
   activeConnections: number;
   idleConnections: number;
   databaseSize: string;
-  tableCount: number;
-  indexCount: number;
+  databaseSizeBytes: number;
   slowQueryCount: number;
-  avgQueryTime: number;
   cacheHitRatio: number;
-  collectedAt: Date;
+  totalIndexes: number;
+  usedIndexes: number;
+  indexUsageRatio: number;
+  tableCount?: number;
+  indexCount?: number;
+  avgQueryTime?: number;
+  collectedAt?: Date;
 }
 
 export interface QueryPerformance {
   queryId: string;
   query: string;
+  queryHash?: string;
+  queryText?: string;
   executionTime: number;
+  averageExecutionTime?: number;
   rowsAffected: number;
   timestamp: Date;
   parameters?: any[];
@@ -54,16 +69,19 @@ export interface QueryPerformance {
 
 export interface ConnectionPoolStats {
   totalConnections: number;
+  activeConnections: number;
   idleConnections: number;
   waitingClients: number;
   maxConnections: number;
-  minConnections: number;
+  minConnections?: number;
 }
 
 export interface OptimizationResult {
-  success: boolean;
-  appliedOptimizations: string[];
-  errors: string[];
-  performanceGain?: number;
+  type: string;
+  description: string;
+  estimatedBenefit: number;
+  actualBenefit: number;
   duration: number;
+  success: boolean;
+  error?: string;
 }

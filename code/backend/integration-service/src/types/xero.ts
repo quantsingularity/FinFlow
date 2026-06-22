@@ -1,91 +1,100 @@
 export interface XeroConfig {
-  clientId: string;
-  clientSecret: string;
-  redirectUri: string;
-  scopes: string[];
+  clientId?: string;
+  clientSecret?: string;
+  redirectUri?: string;
+  scopes?: string[];
   tenantId?: string;
+  [key: string]: any;
 }
 
 export interface XeroTokens {
-  accessToken: string;
-  refreshToken: string;
-  tokenType: string;
-  expiresIn: number;
+  accessToken?: string;
+  refreshToken?: string;
+  tokenType?: string;
+  expiresIn?: number;
   idToken?: string;
   scope?: string;
   createdAt?: Date;
+  [key: string]: any;
 }
 
 export interface XeroOrganisation {
-  tenantId: string;
-  tenantName: string;
-  tenantType: string;
+  tenantId?: string;
+  tenantName?: string;
+  tenantType?: string;
   baseCurrency?: string;
   countryCode?: string;
   isDemoCompany?: boolean;
+  [key: string]: any;
 }
 
 export interface XeroContact {
-  contactId: string;
-  name: string;
+  contactId?: string;
+  name?: string;
   emailAddress?: string;
   phones?: any[];
   isCustomer?: boolean;
   isSupplier?: boolean;
   balances?: any;
+  [key: string]: any;
 }
 
 export interface XeroInvoice {
-  invoiceId: string;
+  invoiceId?: string;
   invoiceNumber?: string;
-  type: "ACCREC" | "ACCPAY";
-  contactId: string;
-  total: number;
-  amountDue: number;
-  amountPaid: number;
-  status: string;
+  type?: "ACCREC" | "ACCPAY";
+  contactId?: string;
+  total?: number;
+  amountDue?: number;
+  amountPaid?: number;
+  status?: string;
   dueDate?: string;
-  lineItems: any[];
+  lineItems?: any[];
   updatedDateUtc?: string;
+  [key: string]: any;
 }
 
 export interface XeroPayment {
-  paymentId: string;
+  paymentId?: string;
   invoiceId?: string;
-  accountId: string;
-  amount: number;
-  currency: string;
-  date: string;
+  accountId?: string;
+  amount?: number;
+  currency?: string;
+  date?: string;
   reference?: string;
   paymentType?: string;
+  [key: string]: any;
 }
 
 export interface XeroAccount {
-  accountId: string;
+  accountId?: string;
   code?: string;
-  name: string;
-  type: string;
+  name?: string;
+  type?: string;
   bankAccountNumber?: string;
   currencyCode?: string;
   enablePaymentsToAccount?: boolean;
+  [key: string]: any;
 }
 
 export interface XeroTransaction {
-  bankTransactionId: string;
-  type: string;
+  bankTransactionId?: string;
+  type?: string;
   contactId?: string;
-  bankAccountId: string;
-  total: number;
-  date: string;
+  bankAccountId?: string;
+  total?: number;
+  date?: string;
   reference?: string;
   isReconciled?: boolean;
+  [key: string]: any;
 }
 
 export interface XeroSyncResult {
-  success: boolean;
-  entityType: string;
-  synced: number;
-  failed: number;
-  errors: string[];
-  lastSyncAt: Date;
+  success?: boolean;
+  entityType?: string;
+  synced?: number;
+  failed?: number;
+  errors?: any[];
+  lastSyncAt?: Date;
+  [key: string]: any;
 }

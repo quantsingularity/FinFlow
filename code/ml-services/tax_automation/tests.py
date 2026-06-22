@@ -16,6 +16,7 @@ try:
     )
     from tax_automation.tax_calculation_engine import (
         CalculationMethod,
+        TaxProfile,
         TaxRule,
         TaxType,
         Transaction,
@@ -30,6 +31,7 @@ except ImportError:
     )
     from tax_calculation_engine import (
         CalculationMethod,
+        TaxProfile,
         TaxRule,
         TaxType,
         Transaction,
@@ -84,6 +86,16 @@ class TestTaxCalculationEngine(unittest.TestCase):
 
     def test_tax_calculation_no_applicable_rules(self) -> Any:
         """Test tax calculation when no rules apply"""
+        # Rules also match on the payer's tax residency, so a genuine
+        # "no applicable rules" case needs a payer whose residency matches no
+        # configured rule (the sample payers reside in UK/NY, which have rules).
+        self.engine.add_tax_profile(
+            TaxProfile(
+                entity_id="user_no_rules",
+                tax_identification_number=None,
+                tax_residency="ZZ",
+            )
+        )
         transaction = Transaction(
             transaction_id="test_txn_002",
             amount=Decimal("100.00"),
@@ -92,7 +104,7 @@ class TestTaxCalculationEngine(unittest.TestCase):
             destination_jurisdiction="UNKNOWN",
             product_service_code=None,
             timestamp=datetime.now(),
-            payer_entity_id="user_001",
+            payer_entity_id="user_no_rules",
             payee_entity_id="user_002",
         )
         result = self.engine.calculate_taxes(transaction)

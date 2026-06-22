@@ -1,6 +1,9 @@
 import dotenv from "dotenv";
 import Stripe from "stripe";
-import { PaymentProcessorInterface } from "../interfaces/payment-processor.interface";
+import {
+  PaymentProcessorInterface,
+  ProcessorResult,
+} from "../interfaces/payment-processor.interface";
 import { logger } from "../utils/logger";
 
 // Load environment variables
@@ -21,9 +24,8 @@ export class StripeProcessor implements PaymentProcessorInterface {
     }
 
     this.stripeClient = new Stripe(apiKey, {
-      apiVersion:
-        (process.env.STRIPE_API_VERSION as Stripe.LatestApiVersion) ||
-        "2023-10-16",
+      apiVersion: (process.env.STRIPE_API_VERSION ||
+        "2023-10-16") as Stripe.LatestApiVersion,
     });
   }
 
@@ -35,13 +37,13 @@ export class StripeProcessor implements PaymentProcessorInterface {
     amount: number,
     currency: string = "usd",
     metadata: Record<string, any> = {},
-  ): Promise<Stripe.PaymentIntent> {
+  ): Promise<ProcessorResult> {
     try {
-      return await this.stripeClient.paymentIntents.create({
+      return (await this.stripeClient.paymentIntents.create({
         amount,
         currency,
         metadata,
-      });
+      })) as unknown as ProcessorResult;
     } catch (error) {
       logger.error(`Stripe payment intent creation failed: ${error}`);
       throw error;
@@ -53,23 +55,25 @@ export class StripeProcessor implements PaymentProcessorInterface {
     currency: string = "usd",
     source: string,
     metadata: Record<string, any> = {},
-  ): Promise<Stripe.Charge> {
+  ): Promise<ProcessorResult> {
     try {
-      return await this.stripeClient.charges.create({
+      return (await this.stripeClient.charges.create({
         amount,
         currency,
         source,
         metadata,
-      });
+      })) as unknown as ProcessorResult;
     } catch (error) {
       logger.error(`Stripe charge creation failed: ${error}`);
       throw error;
     }
   }
 
-  async retrieveCharge(chargeId: string): Promise<Stripe.Charge> {
+  async retrieveCharge(chargeId: string): Promise<ProcessorResult> {
     try {
-      return await this.stripeClient.charges.retrieve(chargeId);
+      return (await this.stripeClient.charges.retrieve(
+        chargeId,
+      )) as unknown as ProcessorResult;
     } catch (error) {
       logger.error(`Stripe charge retrieval failed: ${error}`);
       throw error;
@@ -80,7 +84,7 @@ export class StripeProcessor implements PaymentProcessorInterface {
     chargeId: string,
     amount?: number,
     reason?: string,
-  ): Promise<Stripe.Refund> {
+  ): Promise<ProcessorResult> {
     try {
       const refundParams: Stripe.RefundCreateParams = {
         charge: chargeId,
@@ -94,7 +98,9 @@ export class StripeProcessor implements PaymentProcessorInterface {
         refundParams.reason = reason as Stripe.RefundCreateParams.Reason;
       }
 
-      return await this.stripeClient.refunds.create(refundParams);
+      return (await this.stripeClient.refunds.create(
+        refundParams,
+      )) as unknown as ProcessorResult;
     } catch (error) {
       logger.error(`Stripe refund creation failed: ${error}`);
       throw error;
@@ -166,7 +172,7 @@ export class StripeProcessor implements PaymentProcessorInterface {
   }
 
   async getPaymentStatus(processorPaymentId: string): Promise<any> {
-    const charge = await this.retrieveCharge(processorPaymentId);
+    const charge: any = await this.retrieveCharge(processorPaymentId);
     return {
       status: charge.status,
       updatedAt: new Date(charge.created * 1000),

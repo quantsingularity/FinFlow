@@ -13,6 +13,11 @@ export const config = {
     clientSecret: process.env.XERO_CLIENT_SECRET || "",
     redirectUri: process.env.XERO_REDIRECT_URI || "",
   },
+  frontend: {
+    baseUrl: process.env.FRONTEND_BASE_URL || "http://localhost:3000",
+  },
+  port: parseInt(process.env.PORT || "3005", 10),
+  nodeEnv: process.env.NODE_ENV || "development",
 };
 
 export default config;

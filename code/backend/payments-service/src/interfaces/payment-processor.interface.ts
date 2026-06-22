@@ -24,7 +24,12 @@ export interface PaymentDetails {
 }
 
 export interface RefundDetails {
-  chargeId: string;
+  // chargeId is optional: processors resolve the charge from processorPaymentId
+  // (the id returned by the processor at charge time). paymentId is the local id.
+  chargeId?: string;
+  paymentId?: string;
+  processorType?: string;
+  processorPaymentId?: string;
   amount?: number;
   reason?: string;
   metadata?: ProcessorMetadata;
@@ -49,8 +54,8 @@ export interface PaymentProcessorInterface {
     amount?: number,
     reason?: string,
   ): Promise<ProcessorResult>;
-  verifyWebhookSignature(payload: string | Buffer, signature: string): boolean;
-  processWebhookEvent(event: Record<string, unknown>): Promise<void>;
+  verifyWebhookSignature(payload: string | Buffer, signature: string): any;
+  processWebhookEvent(event: any): Promise<void>;
   getClientConfig(): Record<string, string | number | boolean | null>;
   processPayment(paymentDetails: PaymentDetails): Promise<ProcessorResult>;
   refundPayment(refundDetails: RefundDetails): Promise<ProcessorResult>;

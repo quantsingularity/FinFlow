@@ -685,7 +685,7 @@ export class TenantService extends EventEmitter {
     }
   }
 
-  async getTenantAnalytics(tenantId: string): Promise<TenantAnalytics> {
+  async getTenantAnalytics(tenantId: string): Promise<any> {
     if (!this.isInitialized) {
       throw new Error("Tenant Service not initialized");
     }
