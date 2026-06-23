@@ -239,7 +239,9 @@ class AnalyticsService {
     const debtToEquityRatio =
       totalEquity > 0 ? totalLiabilities / totalEquity : 0;
 
-    const currentAssets = ((balanceSheet.assetItems as Array<Record<string, unknown>>) || [])
+    const currentAssets = (
+      (balanceSheet.assetItems as Array<Record<string, unknown>>) || []
+    )
       .filter((item: Record<string, unknown>) =>
         String(item["accountCode"] || "").startsWith("1"),
       )
@@ -248,7 +250,9 @@ class AnalyticsService {
           sum + ((item["amount"] as number) ?? 0),
         0,
       );
-    const currentLiabilities = ((balanceSheet.liabilityItems as Array<Record<string, unknown>>) || [])
+    const currentLiabilities = (
+      (balanceSheet.liabilityItems as Array<Record<string, unknown>>) || []
+    )
       .filter((item: Record<string, unknown>) =>
         String(item["accountCode"] || "").startsWith("2"),
       )
@@ -260,7 +264,9 @@ class AnalyticsService {
     const currentRatio =
       currentLiabilities > 0 ? currentAssets / currentLiabilities : 0;
 
-    const inventory = ((balanceSheet.assetItems as Array<Record<string, unknown>>) || [])
+    const inventory = (
+      (balanceSheet.assetItems as Array<Record<string, unknown>>) || []
+    )
       .filter((item: Record<string, unknown>) =>
         String(item["accountCode"] || "").startsWith("12"),
       )

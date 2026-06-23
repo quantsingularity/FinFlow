@@ -308,9 +308,7 @@ class PaymentService {
     }
   }
 
-  private async handleStripeWebhookEvent(
-    event: any,
-  ): Promise<void> {
+  private async handleStripeWebhookEvent(event: any): Promise<void> {
     switch (event.type) {
       case "charge.succeeded":
         await this.handleStripeChargeSucceeded(event.data.object);
@@ -326,9 +324,7 @@ class PaymentService {
     }
   }
 
-  private async handlePayPalWebhookEvent(
-    event: any,
-  ): Promise<void> {
+  private async handlePayPalWebhookEvent(event: any): Promise<void> {
     switch (event.event_type) {
       case "PAYMENT.CAPTURE.COMPLETED":
         await this.handlePayPalPaymentCompleted(event.resource);
@@ -344,9 +340,7 @@ class PaymentService {
     }
   }
 
-  private async handleSquareWebhookEvent(
-    event: any,
-  ): Promise<void> {
+  private async handleSquareWebhookEvent(event: any): Promise<void> {
     switch (event.type) {
       case "payment.created":
         await this.handleSquarePaymentCreated(event.data.object.payment);
@@ -362,9 +356,7 @@ class PaymentService {
     }
   }
 
-  private async handleStripeChargeSucceeded(
-    charge: any,
-  ): Promise<void> {
+  private async handleStripeChargeSucceeded(charge: any): Promise<void> {
     const existingPayment = await paymentModel.findByProcessorId(charge.id);
     if (existingPayment) return;
     const userId = charge.metadata?.userId;
@@ -385,9 +377,7 @@ class PaymentService {
     await this.publishPaymentCompletedEvent(payment);
   }
 
-  private async handleStripeChargeFailed(
-    charge: any,
-  ): Promise<void> {
+  private async handleStripeChargeFailed(charge: any): Promise<void> {
     const existingPayment = await paymentModel.findByProcessorId(charge.id);
     if (existingPayment) return;
     const userId = charge.metadata?.userId;
@@ -408,9 +398,7 @@ class PaymentService {
     await this.publishPaymentFailedEvent(payment, charge.failure_message);
   }
 
-  private async handleStripeChargeRefunded(
-    charge: any,
-  ): Promise<void> {
+  private async handleStripeChargeRefunded(charge: any): Promise<void> {
     const payment = await paymentModel.findByProcessorId(charge.id);
     if (!payment) {
       logger.error("Payment not found for Stripe charge ID: " + charge.id);
@@ -433,9 +421,7 @@ class PaymentService {
     });
   }
 
-  private async handlePayPalPaymentCompleted(
-    resource: any,
-  ): Promise<void> {
+  private async handlePayPalPaymentCompleted(resource: any): Promise<void> {
     const existingPayment = await paymentModel.findByProcessorId(resource.id);
     if (existingPayment) return;
     const customId = resource.custom_id || "";
@@ -457,9 +443,7 @@ class PaymentService {
     await this.publishPaymentCompletedEvent(payment);
   }
 
-  private async handlePayPalPaymentDenied(
-    resource: any,
-  ): Promise<void> {
+  private async handlePayPalPaymentDenied(resource: any): Promise<void> {
     const existingPayment = await paymentModel.findByProcessorId(resource.id);
     if (existingPayment) return;
     const customId = resource.custom_id || "";
@@ -484,9 +468,7 @@ class PaymentService {
     );
   }
 
-  private async handlePayPalPaymentRefunded(
-    resource: any,
-  ): Promise<void> {
+  private async handlePayPalPaymentRefunded(resource: any): Promise<void> {
     const payment = await paymentModel.findByProcessorId(resource.id);
     if (!payment) {
       logger.error("Payment not found for PayPal payment ID: " + resource.id);
@@ -504,9 +486,7 @@ class PaymentService {
     });
   }
 
-  private async handleSquarePaymentCreated(
-    payment: any,
-  ): Promise<void> {
+  private async handleSquarePaymentCreated(payment: any): Promise<void> {
     const existingPayment = await paymentModel.findByProcessorId(payment.id);
     if (existingPayment) return;
     const referenceId = payment.reference_id || "";
@@ -533,9 +513,7 @@ class PaymentService {
       await this.publishPaymentCompletedEvent(paymentRecord);
   }
 
-  private async handleSquarePaymentUpdated(
-    payment: any,
-  ): Promise<void> {
+  private async handleSquarePaymentUpdated(payment: any): Promise<void> {
     const existingPayment = await paymentModel.findByProcessorId(payment.id);
     if (!existingPayment) {
       logger.error("Payment not found for Square payment ID: " + payment.id);
@@ -561,9 +539,7 @@ class PaymentService {
     }
   }
 
-  private async handleSquareRefundCreated(
-    refund: any,
-  ): Promise<void> {
+  private async handleSquareRefundCreated(refund: any): Promise<void> {
     const payment = await paymentModel.findByProcessorId(refund.payment_id);
     if (!payment) {
       logger.error(
