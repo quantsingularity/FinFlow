@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import Card from "../../components/common/Card";
 
-const AccountingScreen: React.FC = ({ navigation }: any) => {
+const AccountingScreen: React.FC<any> = ({ navigation }: any) => {
   const reports = [
     {
       title: "Balance Sheet",

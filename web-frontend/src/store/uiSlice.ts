@@ -2,6 +2,7 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 interface UiState {
   sidebarOpen: boolean;
+  darkMode: boolean;
   loading: {
     [key: string]: boolean;
   };
@@ -15,6 +16,7 @@ interface UiState {
 
 const initialState: UiState = {
   sidebarOpen: true,
+  darkMode: false,
   loading: {},
   notifications: [],
 };
@@ -25,6 +27,9 @@ const uiSlice = createSlice({
   reducers: {
     toggleSidebar: (state) => {
       state.sidebarOpen = !state.sidebarOpen;
+    },
+    toggleDarkMode: (state) => {
+      state.darkMode = !state.darkMode;
     },
     setSidebarOpen: (state, action: PayloadAction<boolean>) => {
       state.sidebarOpen = action.payload;
@@ -64,6 +69,7 @@ const uiSlice = createSlice({
 
 export const {
   toggleSidebar,
+  toggleDarkMode,
   setSidebarOpen,
   setLoading,
   addNotification,

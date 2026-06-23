@@ -19,7 +19,7 @@ const getApiUrl = () => {
   }
 
   // Default fallback
-  return "http://localhost:8080";
+  return "http://localhost:8000";
 };
 
 const API_URL = getApiUrl();
@@ -79,7 +79,7 @@ class ApiService {
   }
 
   // Generic request method
-  private async request<T>(
+  private async request<T = any>(
     config: AxiosRequestConfig,
   ): Promise<ApiResponse<T>> {
     const response = await this.api.request<T>(config);
@@ -91,23 +91,23 @@ class ApiService {
   }
 
   // HTTP methods
-  async get<T>(url: string, params?: any): Promise<ApiResponse<T>> {
+  async get<T = any>(url: string, params?: any): Promise<ApiResponse<T>> {
     return this.request<T>({ method: "GET", url, params });
   }
 
-  async post<T>(url: string, data?: any): Promise<ApiResponse<T>> {
+  async post<T = any>(url: string, data?: any): Promise<ApiResponse<T>> {
     return this.request<T>({ method: "POST", url, data });
   }
 
-  async put<T>(url: string, data?: any): Promise<ApiResponse<T>> {
+  async put<T = any>(url: string, data?: any): Promise<ApiResponse<T>> {
     return this.request<T>({ method: "PUT", url, data });
   }
 
-  async patch<T>(url: string, data?: any): Promise<ApiResponse<T>> {
+  async patch<T = any>(url: string, data?: any): Promise<ApiResponse<T>> {
     return this.request<T>({ method: "PATCH", url, data });
   }
 
-  async delete<T>(url: string): Promise<ApiResponse<T>> {
+  async delete<T = any>(url: string): Promise<ApiResponse<T>> {
     return this.request<T>({ method: "DELETE", url });
   }
 

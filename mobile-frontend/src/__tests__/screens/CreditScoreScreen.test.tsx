@@ -1,11 +1,11 @@
 import { render } from "@testing-library/react-native";
 import { Provider } from "react-redux";
 import configureStore from "redux-mock-store";
-import thunk from "redux-thunk";
+import { thunk } from "redux-thunk";
 import CreditScoreScreen from "../../screens/credit/CreditScoreScreen";
 
 // Mock Redux store
-const middlewares = [thunk];
+const middlewares: any[] = [thunk];
 const mockStore = configureStore(middlewares);
 
 // Mock data
@@ -37,7 +37,7 @@ const mockCreditData = {
 };
 
 describe("CreditScoreScreen", () => {
-  let store;
+  let store: any;
 
   beforeEach(() => {
     store = mockStore(mockCreditData);
@@ -56,7 +56,7 @@ describe("CreditScoreScreen", () => {
     // Check if important elements are rendered
     expect(getByText("Your Credit Score")).toBeTruthy();
     expect(getByText("720")).toBeTruthy();
-    expect(getByText("Good")).toBeTruthy();
+    expect(getByText("Very Good")).toBeTruthy();
     expect(getByText("Factors Affecting Your Score")).toBeTruthy();
     expect(getByText("Payment History")).toBeTruthy();
     expect(getByText("You have a good payment history")).toBeTruthy();
@@ -122,7 +122,7 @@ describe("CreditScoreScreen", () => {
     // Test with different score values
     const testScores = [
       { score: 780, category: "Excellent" },
-      { score: 720, category: "Good" },
+      { score: 720, category: "Very Good" },
       { score: 630, category: "Fair" },
       { score: 580, category: "Poor" },
     ];

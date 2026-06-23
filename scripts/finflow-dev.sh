@@ -161,7 +161,7 @@ EOL
     log_message "INFO" "Created default .env file"
     
     source "$PROJECT_ROOT/.env"
-  }
+  fi
   
   # Apply port offset if specified
   if [ "$PORT_OFFSET" -ne 0 ]; then
@@ -175,7 +175,7 @@ EOL
     sed -i "s/ANALYTICS_PORT=\([0-9]\+\)/ANALYTICS_PORT=$((3004 + $PORT_OFFSET))/" "$PROJECT_ROOT/.env"
     sed -i "s/CREDIT_ENGINE_PORT=\([0-9]\+\)/CREDIT_ENGINE_PORT=$((3005 + $PORT_OFFSET))/" "$PROJECT_ROOT/.env"
     sed -i "s|REACT_APP_AUTH_URL=http://localhost:\([0-9]\+\)|REACT_APP_AUTH_URL=http://localhost:$((3001 + $PORT_OFFSET))|" "$PROJECT_ROOT/.env"
-  }
+  fi
   
   print_success "Environment variables loaded"
   log_message "INFO" "Environment variables loaded"
@@ -275,14 +275,14 @@ if [ "$ACTION" = "start" ]; then
     # Start backend services in dependency order
     for service in $(jq -r 'to_entries | sort_by(.value.startup_order) | .[].key' "$graph_file"); do
       # Skip if service is not in the list of services to start
-      if [[ ! " ${backend_services[@]} " =~ " ${service} " ]] && [[ ! " ${frontend_services[@]} " =~ " ${service} " ]]; then
+      if [[ ! " ${backend_services[*]} " =~ " ${service} " ]] && [[ ! " ${frontend_services[*]} " =~ " ${service} " ]]; then
         continue
       fi
       
       # Skip if service is a frontend service (handled separately)
       if [[ "$service" == *"frontend"* ]]; then
         continue
-      }
+      fi
       
       print_info "Starting $service..."
       log_message "INFO" "Starting $service"
@@ -292,7 +292,7 @@ if [ "$ACTION" = "start" ]; then
         print_warning "Service directory $service not found, skipping"
         log_message "WARNING" "Service directory $service not found, skipping"
         continue
-      }
+      fi
       
       # Check if service is already running
       if [ -f "$DEV_DIR/pids/$service.pid" ]; then
@@ -303,8 +303,8 @@ if [ "$ACTION" = "start" ]; then
           continue
         else
           rm "$DEV_DIR/pids/$service.pid"
-        }
-      }
+        fi
+      fi
       
       # Install dependencies if needed
       if [ ! -d "$service_dir/node_modules" ]; then
@@ -314,7 +314,7 @@ if [ "$ACTION" = "start" ]; then
           log_message "ERROR" "Failed to install dependencies for $service"
           continue
         }
-      }
+      fi
       
       # Create service log file
       local log_file="$LOG_DIR/${service}.log"
@@ -328,7 +328,7 @@ if [ "$ACTION" = "start" ]; then
         start_cmd="$start_cmd start:dev"
       else
         start_cmd="$start_cmd start"
-      }
+      fi
       
       # Copy .env file to service directory
       cp "$PROJECT_ROOT/.env" "$service_dir/.env"
@@ -343,7 +343,7 @@ if [ "$ACTION" = "start" ]; then
       # Wait for service to be ready
       print_info "Waiting for $service to be ready..."
       sleep 5
-    }
+    done
     
     # Start frontend services
     for service in "${frontend_services[@]}"; do
@@ -355,7 +355,7 @@ if [ "$ACTION" = "start" ]; then
         print_warning "Service directory $service not found, skipping"
         log_message "WARNING" "Service directory $service not found, skipping"
         continue
-      }
+      fi
       
       # Check if service is already running
       if [ -f "$DEV_DIR/pids/$service.pid" ]; then
@@ -366,8 +366,8 @@ if [ "$ACTION" = "start" ]; then
           continue
         else
           rm "$DEV_DIR/pids/$service.pid"
-        }
-      }
+        fi
+      fi
       
       # Install dependencies if needed
       if [ ! -d "$service_dir/node_modules" ]; then
@@ -377,7 +377,7 @@ if [ "$ACTION" = "start" ]; then
           log_message "ERROR" "Failed to install dependencies for $service"
           continue
         }
-      }
+      fi
       
       # Create service log file
       local log_file="$LOG_DIR/${service}.log"
@@ -392,7 +392,7 @@ if [ "$ACTION" = "start" ]; then
       local pid=$(cat "$DEV_DIR/pids/$service.pid")
       print_success "Started $service (PID: $pid)"
       log_message "INFO" "Started $service (PID: $pid)"
-    }
+    done
     
     print_success "All services started"
     log_message "INFO" "All services started"
@@ -408,20 +408,20 @@ if [ "$ACTION" = "start" ]; then
       print_warning "Docker is not installed. Skipping infrastructure services."
       log_message "WARNING" "Docker is not installed. Skipping infrastructure services."
       return 1
-    }
+    fi
     
     if ! docker info &> /dev/null; then
       print_warning "Docker is not running. Skipping infrastructure services."
       log_message "WARNING" "Docker is not running. Skipping infrastructure services."
       return 1
-    }
+    fi
     
     # Check if docker-compose is installed
     if ! command -v docker-compose &> /dev/null; then
       print_warning "Docker Compose is not installed. Skipping infrastructure services."
       log_message "WARNING" "Docker Compose is not installed. Skipping infrastructure services."
       return 1
-    }
+    fi
     
     # Check if infrastructure directory exists
     local infra_dir="$PROJECT_ROOT/infrastructure"
@@ -483,7 +483,7 @@ EOL
       
       print_success "Created docker-compose.yml file"
       log_message "INFO" "Created docker-compose.yml file"
-    }
+    fi
     
     # Start infrastructure services
     print_info "Starting infrastructure services with Docker Compose..."
@@ -504,8 +504,8 @@ EOL
   if [ $start_status -ne 0 ]; then
     print_warning "Some services failed to start"
     log_message "WARNING" "Some services failed to start"
-  }
-}
+  fi
+fi
 
 # --- Stop Services ---
 if [ "$ACTION" = "stop" ]; then
@@ -520,7 +520,7 @@ if [ "$ACTION" = "stop" ]; then
       local all_services=("auth-service" "payments-service" "accounting-service" "analytics-service" "credit-engine" "web-frontend" "mobile-frontend")
     else
       IFS="," read -ra all_services <<< "$SERVICES"
-    }
+    fi
     
     # Stop services in reverse order
     for service in $(printf '%s\n' "${all_services[@]}" | tac); do
@@ -544,18 +544,18 @@ if [ "$ACTION" = "stop" ]; then
         else
           print_warning "$service is not running"
           log_message "WARNING" "$service is not running"
-        }
+        fi
         rm "$DEV_DIR/pids/$service.pid"
       else
         print_warning "$service is not running"
         log_message "WARNING" "$service is not running"
-      }
-    }
+      fi
+    done
     
     # Stop infrastructure services if requested
     if [ "$SERVICES" = "all" ]; then
       stop_infrastructure_services
-    }
+    fi
     
     print_success "All services stopped"
     log_message "INFO" "All services stopped"
@@ -571,14 +571,14 @@ if [ "$ACTION" = "stop" ]; then
       print_warning "Docker is not running. Skipping infrastructure services."
       log_message "WARNING" "Docker is not running. Skipping infrastructure services."
       return 1
-    }
+    fi
     
     # Check if docker-compose is installed
     if ! command -v docker-compose &> /dev/null; then
       print_warning "Docker Compose is not installed. Skipping infrastructure services."
       log_message "WARNING" "Docker Compose is not installed. Skipping infrastructure services."
       return 1
-    }
+    fi
     
     # Check if infrastructure directory exists
     local infra_dir="$PROJECT_ROOT/infrastructure"
@@ -586,7 +586,7 @@ if [ "$ACTION" = "stop" ]; then
       print_warning "Infrastructure directory or docker-compose.yml not found"
       log_message "WARNING" "Infrastructure directory or docker-compose.yml not found"
       return 1
-    }
+    fi
     
     # Stop infrastructure services
     print_info "Stopping infrastructure services with Docker Compose..."
@@ -607,8 +607,8 @@ if [ "$ACTION" = "stop" ]; then
   if [ $stop_status -ne 0 ]; then
     print_warning "Some services failed to stop"
     log_message "WARNING" "Some services failed to stop"
-  }
-}
+  fi
+fi
 
 # --- Restart Services ---
 if [ "$ACTION" = "restart" ]; then
@@ -635,8 +635,8 @@ if [ "$ACTION" = "restart" ]; then
   if [ $restart_status -ne 0 ]; then
     print_warning "Some services failed to restart"
     log_message "WARNING" "Some services failed to restart"
-  }
-}
+  fi
+fi
 
 # --- Check Service Status ---
 if [ "$ACTION" = "status" ]; then
@@ -660,9 +660,9 @@ if [ "$ACTION" = "status" ]; then
           frontend_services+=("$service")
         else
           backend_services+=("$service")
-        }
-      }
-    }
+        fi
+      done
+    fi
     
     # Check backend services
     echo -e "\n${COLOR_CYAN}Backend Services:${COLOR_RESET}"
@@ -700,15 +700,15 @@ if [ "$ACTION" = "status" ]; then
           esac
         else
           rm "$DEV_DIR/pids/$service.pid"
-        }
-      }
+        fi
+      fi
       
       if [ "$status" = "RUNNING" ]; then
         printf "%-20s ${COLOR_GREEN}%-10s${COLOR_RESET} %-10s %-20s\n" "$service" "$status" "$pid" "$port"
       else
         printf "%-20s ${COLOR_RED}%-10s${COLOR_RESET} %-10s %-20s\n" "$service" "$status" "$pid" "$port"
-      }
-    }
+      fi
+    done
     
     # Check frontend services
     echo -e "\n${COLOR_CYAN}Frontend Services:${COLOR_RESET}"
@@ -730,15 +730,15 @@ if [ "$ACTION" = "status" ]; then
           port="3000"
         else
           rm "$DEV_DIR/pids/$service.pid"
-        }
-      }
+        fi
+      fi
       
       if [ "$status" = "RUNNING" ]; then
         printf "%-20s ${COLOR_GREEN}%-10s${COLOR_RESET} %-10s %-20s\n" "$service" "$status" "$pid" "$port"
       else
         printf "%-20s ${COLOR_RED}%-10s${COLOR_RESET} %-10s %-20s\n" "$service" "$status" "$pid" "$port"
-      }
-    }
+      fi
+    done
     
     # Check infrastructure services
     echo -e "\n${COLOR_CYAN}Infrastructure Services:${COLOR_RESET}"
@@ -752,31 +752,31 @@ if [ "$ACTION" = "status" ]; then
         printf "%-20s ${COLOR_GREEN}%-10s${COLOR_RESET} %-20s\n" "PostgreSQL" "RUNNING" "$POSTGRES_PORT"
       else
         printf "%-20s ${COLOR_RED}%-10s${COLOR_RESET} %-20s\n" "PostgreSQL" "STOPPED" "-"
-      }
+      fi
       
       # Check MongoDB
       if docker ps | grep -q "finflow-mongodb"; then
         printf "%-20s ${COLOR_GREEN}%-10s${COLOR_RESET} %-20s\n" "MongoDB" "RUNNING" "27017"
       else
         printf "%-20s ${COLOR_RED}%-10s${COLOR_RESET} %-20s\n" "MongoDB" "STOPPED" "-"
-      }
+      fi
       
       # Check Kafka
       if docker ps | grep -q "finflow-kafka"; then
         printf "%-20s ${COLOR_GREEN}%-10s${COLOR_RESET} %-20s\n" "Kafka" "RUNNING" "9092"
       else
         printf "%-20s ${COLOR_RED}%-10s${COLOR_RESET} %-20s\n" "Kafka" "STOPPED" "-"
-      }
+      fi
       
       # Check Zookeeper
       if docker ps | grep -q "finflow-zookeeper"; then
         printf "%-20s ${COLOR_GREEN}%-10s${COLOR_RESET} %-20s\n" "Zookeeper" "RUNNING" "2181"
       else
         printf "%-20s ${COLOR_RED}%-10s${COLOR_RESET} %-20s\n" "Zookeeper" "STOPPED" "-"
-      }
+      fi
     else
       printf "%-20s ${COLOR_YELLOW}%-10s${COLOR_RESET} %-20s\n" "Docker" "UNAVAILABLE" "-"
-    }
+    fi
     
     print_success "Service status check completed"
     log_message "INFO" "Service status check completed"
@@ -789,8 +789,8 @@ if [ "$ACTION" = "status" ]; then
   if [ $status_check_status -ne 0 ]; then
     print_warning "Service status check completed with warnings"
     log_message "WARNING" "Service status check completed with warnings"
-  }
-}
+  fi
+fi
 
 # --- Summary ---
 print_header "Development Workflow Summary"
@@ -803,7 +803,7 @@ if [ "$ACTION" = "start" ]; then
   echo -e "You can check service status with: ${COLOR_CYAN}$0 --action status${COLOR_RESET}"
   echo -e "You can view service logs in: ${COLOR_CYAN}$LOG_DIR${COLOR_RESET}"
   echo -e "You can stop services with: ${COLOR_CYAN}$0 --action stop${COLOR_RESET}"
-}
+fi
 
 log_message "INFO" "Development workflow summary provided to user"
 

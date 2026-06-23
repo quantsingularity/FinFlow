@@ -17,7 +17,7 @@ import {
   refundPayment,
 } from "../../store/slices/paymentsSlice";
 
-const PaymentDetailsScreen: React.FC = ({ route, navigation }: any) => {
+const PaymentDetailsScreen: React.FC<any> = ({ route, navigation }: any) => {
   const { id } = route.params;
   const dispatch = useDispatch<AppDispatch>();
   const { currentTransaction, isLoading, error } = useSelector(
@@ -43,7 +43,7 @@ const PaymentDetailsScreen: React.FC = ({ route, navigation }: any) => {
             try {
               await dispatch(refundPayment({ id })).unwrap();
               Alert.alert("Success", "Payment has been refunded successfully.");
-            } catch (err) {
+            } catch (err: any) {
               Alert.alert("Refund Failed", err.toString());
             }
           },
@@ -51,15 +51,6 @@ const PaymentDetailsScreen: React.FC = ({ route, navigation }: any) => {
       ],
     );
   };
-
-  if (isLoading || !currentTransaction) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3498db" />
-        <Text style={styles.loadingText}>Loading payment details...</Text>
-      </View>
-    );
-  }
 
   if (error) {
     return (
@@ -72,6 +63,15 @@ const PaymentDetailsScreen: React.FC = ({ route, navigation }: any) => {
             variant="outline"
           />
         </Card>
+      </View>
+    );
+  }
+
+  if (isLoading || !currentTransaction) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#3498db" />
+        <Text style={styles.loadingText}>Loading payment details...</Text>
       </View>
     );
   }

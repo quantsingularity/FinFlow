@@ -221,7 +221,7 @@ if [ "$ROLLBACK" = true ]; then
     exit 1
   fi
   
-  local prev_deploy=$(readlink "$DEPLOY_DIR/previous")
+  prev_deploy=$(readlink "$DEPLOY_DIR/previous")
   if [ ! -d "$prev_deploy" ]; then
     print_error "Previous deployment directory not found: $prev_deploy"
     log_message "ERROR" "Previous deployment directory not found: $prev_deploy"

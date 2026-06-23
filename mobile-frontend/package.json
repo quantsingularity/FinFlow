@@ -42,7 +42,9 @@
     "@types/jest": "^29.5.14",
     "@types/react": "~19.0.10",
     "@types/react-test-renderer": "^18.3.0",
+    "@types/redux-mock-store": "^1.5.0",
     "react-test-renderer": "19.0.0",
+    "redux-mock-store": "^1.5.5",
     "typescript": "~5.8.3"
   },
   "jest": {
@@ -52,7 +54,7 @@
       "<rootDir>/jest.setup.js"
     ],
     "transformIgnorePatterns": [
-      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)"
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|react-redux|@reduxjs/toolkit|redux|redux-mock-store|react-native-paper|react-native-vector-icons|react-native-reanimated|@react-native-async-storage)"
     ],
     "collectCoverageFrom": [
       "src/**/*.{ts,tsx}",

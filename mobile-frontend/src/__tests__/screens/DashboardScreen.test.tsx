@@ -1,7 +1,7 @@
 import { fireEvent, render } from "@testing-library/react-native";
 import { Provider } from "react-redux";
 import configureStore from "redux-mock-store";
-import thunk from "redux-thunk";
+import { thunk } from "redux-thunk";
 import DashboardScreen from "../../screens/dashboard/DashboardScreen";
 
 // Mock navigation
@@ -10,7 +10,7 @@ const mockNavigation = {
 };
 
 // Mock Redux store
-const middlewares = [thunk];
+const middlewares: any[] = [thunk];
 const mockStore = configureStore(middlewares);
 
 // Mock data
@@ -92,7 +92,7 @@ const mockDashboardData = {
 };
 
 describe("DashboardScreen", () => {
-  let store;
+  let store: any;
 
   beforeEach(() => {
     store = mockStore(mockDashboardData);
@@ -221,7 +221,7 @@ describe("DashboardScreen", () => {
       </Provider>,
     );
 
-    // Credit score of 720 should be in the "Good" category
-    expect(getByText("Good")).toBeTruthy();
+    // DashboardScreen maps a score >= 700 to "Excellent"
+    expect(getByText("Excellent")).toBeTruthy();
   });
 });

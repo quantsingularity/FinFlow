@@ -1,7 +1,7 @@
 import type React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import type { AppDispatch, RootState } from "../store";
-import { toggleSidebar } from "../store/uiSlice";
+import type { AppDispatch, RootState } from "../../store";
+import { toggleSidebar } from "../../store/uiSlice";
 
 interface LayoutProps {
   children: React.ReactNode;

@@ -14,7 +14,7 @@ import InputField from "../../components/common/InputField";
 import type { AppDispatch, RootState } from "../../store";
 import { login } from "../../store/slices/authSlice";
 
-const LoginScreen: React.FC = ({ navigation }: any) => {
+const LoginScreen: React.FC<any> = ({ navigation }: any) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -55,7 +55,7 @@ const LoginScreen: React.FC = ({ navigation }: any) => {
     if (validateForm()) {
       try {
         await dispatch(login({ email, password })).unwrap();
-      } catch (err) {
+      } catch (err: any) {
         Alert.alert("Login Failed", err.toString());
       }
     }
@@ -98,6 +98,7 @@ const LoginScreen: React.FC = ({ navigation }: any) => {
         </TouchableOpacity>
 
         <Button
+          testID="login-submit-button"
           title="Sign In"
           onPress={handleLogin}
           loading={isLoading}

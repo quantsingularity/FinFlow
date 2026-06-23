@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import {
   Activity, // TrendingUp, Calendar
   ArrowDownRight,
@@ -182,7 +182,7 @@ const Dashboard: React.FC = () => {
   const recentTransactions = transactions.slice(0, 5);
 
   // Animation variants
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -192,7 +192,7 @@ const Dashboard: React.FC = () => {
     },
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
       y: 0,

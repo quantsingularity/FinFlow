@@ -232,10 +232,7 @@ export class AnomalyDetectionService extends EventEmitter {
       const profiles = await profilesCollection.find({}).toArray();
 
       for (const profile of profiles) {
-        this.userProfiles.set(
-          profile.userId,
-          profile as unknown as RiskProfile,
-        );
+        this.userProfiles.set(profile.userId, profile as unknown as RiskProfile);
       }
 
       logger.info(`Loaded ${profiles.length} user risk profiles`);

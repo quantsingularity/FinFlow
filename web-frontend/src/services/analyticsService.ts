@@ -42,7 +42,7 @@ export const getForecast = async (
   startDate: string,
   endDate: string,
   type: "revenue" | "expense" | "cashflow",
-): Promise<any> => {
+): Promise<unknown> => {
   const response = await api.get("/analytics/forecast", {
     params: { startDate, endDate, type },
   });

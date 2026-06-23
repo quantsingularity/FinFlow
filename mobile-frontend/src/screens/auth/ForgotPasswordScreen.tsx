@@ -11,7 +11,7 @@ import {
 import Button from "../../components/common/Button";
 import InputField from "../../components/common/InputField";
 
-const ForgotPasswordScreen: React.FC = ({ navigation }: any) => {
+const ForgotPasswordScreen: React.FC<any> = ({ navigation }: any) => {
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
   const [isLoading, setIsLoading] = useState(false);

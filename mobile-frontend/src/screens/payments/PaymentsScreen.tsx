@@ -1,5 +1,5 @@
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -14,20 +14,20 @@ import TransactionList from "../../components/payments/TransactionList";
 import type { AppDispatch, RootState } from "../../store";
 import { fetchTransactions } from "../../store/slices/paymentsSlice";
 
-const PaymentsScreen: React.FC = ({ navigation }: any) => {
+const PaymentsScreen: React.FC<any> = ({ navigation }: any) => {
   const [currentPage, setCurrentPage] = useState(1);
   const dispatch = useDispatch<AppDispatch>();
   const { transactions, isLoading, error, pagination } = useSelector(
     (state: RootState) => state.payments,
   );
 
+  const loadTransactions = useCallback(() => {
+    dispatch(fetchTransactions({ page: currentPage, limit: 10 }));
+  }, [dispatch, currentPage]);
+
   useEffect(() => {
     loadTransactions();
   }, [loadTransactions]);
-
-  const loadTransactions = () => {
-    dispatch(fetchTransactions({ page: currentPage, limit: 10 }));
-  };
 
   const handleNextPage = () => {
     if (currentPage < pagination.totalPages) {
@@ -89,6 +89,7 @@ const PaymentsScreen: React.FC = ({ navigation }: any) => {
       {pagination.totalPages > 1 && (
         <View style={styles.pagination}>
           <Button
+            testID="previous-button"
             title="Previous"
             onPress={handlePrevPage}
             disabled={currentPage === 1}

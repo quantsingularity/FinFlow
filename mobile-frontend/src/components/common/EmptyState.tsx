@@ -14,6 +14,9 @@ interface EmptyStateProps {
   icon?: string;
   buttonText?: string;
   onButtonPress?: () => void;
+  // Aliases used by screens: an action callback and its label.
+  onAction?: () => void;
+  actionText?: string;
   loading?: boolean;
 }
 
@@ -23,8 +26,12 @@ const EmptyState: React.FC<EmptyStateProps> = ({
   icon = "information-circle-outline",
   buttonText,
   onButtonPress,
+  onAction,
+  actionText,
   loading = false,
 }) => {
+  const handlePress = onButtonPress ?? onAction;
+  const label = buttonText ?? actionText;
   return (
     <View style={styles.container}>
       <Ionicons
@@ -36,16 +43,16 @@ const EmptyState: React.FC<EmptyStateProps> = ({
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.message}>{message}</Text>
 
-      {buttonText && onButtonPress && (
+      {label && handlePress && (
         <TouchableOpacity
           style={styles.button}
-          onPress={onButtonPress}
+          onPress={handlePress}
           disabled={loading}
         >
           {loading ? (
             <ActivityIndicator size="small" color="#ffffff" />
           ) : (
-            <Text style={styles.buttonText}>{buttonText}</Text>
+            <Text style={styles.buttonText}>{label}</Text>
           )}
         </TouchableOpacity>
       )}

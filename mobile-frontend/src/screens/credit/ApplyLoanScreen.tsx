@@ -8,7 +8,7 @@ import InputField from "../../components/common/InputField";
 import type { AppDispatch, RootState } from "../../store";
 import { applyForLoan } from "../../store/slices/creditSlice";
 
-const ApplyLoanScreen: React.FC = ({ navigation }: any) => {
+const ApplyLoanScreen: React.FC<any> = ({ navigation }: any) => {
   const [amount, setAmount] = useState("");
   const [term, setTerm] = useState("");
   const [purpose, setPurpose] = useState("");

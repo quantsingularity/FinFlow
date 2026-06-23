@@ -18,6 +18,7 @@ interface ButtonProps {
   style?: ViewStyle;
   textStyle?: TextStyle;
   fullWidth?: boolean;
+  testID?: string;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -30,6 +31,7 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   textStyle,
   fullWidth = false,
+  testID,
 }) => {
   const getButtonStyle = () => {
     let buttonStyle: ViewStyle = { ...styles.button };
@@ -118,6 +120,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   return (
     <TouchableOpacity
+      testID={testID}
       style={[getButtonStyle(), style]}
       onPress={onPress}
       disabled={disabled || loading}

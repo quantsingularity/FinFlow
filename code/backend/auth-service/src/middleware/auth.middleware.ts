@@ -35,7 +35,9 @@ export const authorize = (roles: string[]) => {
     }
 
     if (!roles.includes(req.user.role as string)) {
-      res.status(403).json({ message: "Forbidden: Insufficient permissions" });
+      res
+        .status(403)
+        .json({ message: "Forbidden: Insufficient permissions" });
       return;
     }
 
@@ -50,12 +52,16 @@ export const authorizeAdmin = (
   next: NextFunction,
 ): void => {
   if (!req.user) {
-    res.status(401).json({ message: "Unauthorized: Authentication required" });
+    res
+      .status(401)
+      .json({ message: "Unauthorized: Authentication required" });
     return;
   }
 
   if (req.user.role !== "ADMIN") {
-    res.status(403).json({ message: "Forbidden: Admin access required" });
+    res
+      .status(403)
+      .json({ message: "Forbidden: Admin access required" });
     return;
   }
 

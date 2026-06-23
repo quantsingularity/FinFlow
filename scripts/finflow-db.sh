@@ -310,7 +310,7 @@ EOL
       print_warning "MongoDB migration directory not found. Creating it..."
       log_message "WARNING" "MongoDB migration directory not found. Creating it..."
       mkdir -p "$migration_dir"
-    }
+    fi
     
     # Check for migration tool
     if [ -f "$PROJECT_ROOT/backend/node_modules/.bin/migrate-mongo" ]; then
@@ -429,7 +429,7 @@ exports.seed = function(knex) {
 EOL
       print_success "Created sample seed file"
       log_message "INFO" "Created sample seed file"
-    }
+    fi
     
     # Check for knex
     if [ -f "$PROJECT_ROOT/backend/node_modules/.bin/knex" ]; then
@@ -513,7 +513,7 @@ seedUsers().catch(console.error);
 EOL
       print_success "Created sample seed file"
       log_message "INFO" "Created sample seed file"
-    }
+    fi
     
     # Run seeds
     print_info "Running MongoDB seeds..."
@@ -718,7 +718,7 @@ if [ "$ACTION" = "restore" ]; then
       print_error "MongoDB backup file not found: $backup_file"
       log_message "ERROR" "MongoDB backup file not found: $backup_file"
       return 1
-    }
+    fi
     
     # Create temporary directory for extraction
     local temp_dir="$BACKUP_DIR/temp_restore"

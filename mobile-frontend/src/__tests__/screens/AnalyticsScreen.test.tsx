@@ -1,11 +1,11 @@
 import { fireEvent, render } from "@testing-library/react-native";
 import { Provider } from "react-redux";
 import configureStore from "redux-mock-store";
-import thunk from "redux-thunk";
+import { thunk } from "redux-thunk";
 import AnalyticsScreen from "../../screens/analytics/AnalyticsScreen";
 
 // Mock Redux store
-const middlewares = [thunk];
+const middlewares: any[] = [thunk];
 const mockStore = configureStore(middlewares);
 
 // Mock data
@@ -33,7 +33,7 @@ const mockAnalyticsData = {
 };
 
 describe("AnalyticsScreen", () => {
-  let store;
+  let store: any;
 
   beforeEach(() => {
     store = mockStore(mockAnalyticsData);

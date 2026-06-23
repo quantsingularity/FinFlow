@@ -1,0 +1,14 @@
+---
+# Collections required by these playbooks. Install with:
+#   ansible-galaxy collection install -r requirements.yml
+#
+# These cover modules used by bare name in the roles:
+#   community.general : timezone, pam_limits
+#   ansible.posix     : sysctl, authorized_key
+#   kubernetes.core   : k8s
+# Without these collections installed, ansible-core cannot resolve the modules
+# and both --syntax-check and execution fail.
+collections:
+  - name: community.general
+  - name: ansible.posix
+  - name: kubernetes.core

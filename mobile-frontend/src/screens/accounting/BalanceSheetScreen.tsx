@@ -12,7 +12,7 @@ import Card from "../../components/common/Card";
 import type { AppDispatch, RootState } from "../../store";
 import { fetchBalanceSheet } from "../../store/slices/accountingSlice";
 
-const BalanceSheetScreen: React.FC = ({ route }: any) => {
+const BalanceSheetScreen: React.FC<any> = ({ route }: any) => {
   const { date } = route.params || {};
   const dispatch = useDispatch<AppDispatch>();
   const { balanceSheet, isLoading, error } = useSelector(
@@ -94,9 +94,18 @@ const BalanceSheetScreen: React.FC = ({ route }: any) => {
         <View style={styles.balanceCheck}>
           <Text style={styles.balanceCheckText}>
             Assets = Liabilities + Equity:{" "}
-            {Object.values(assets).reduce((sum, value) => sum + value, 0) ===
-            Object.values(liabilities).reduce((sum, value) => sum + value, 0) +
-              Object.values(equity).reduce((sum, value) => sum + value, 0)
+            {Object.values(assets).reduce(
+              (sum: number, value: any) => sum + Number(value),
+              0,
+            ) ===
+            Object.values(liabilities).reduce(
+              (sum: number, value: any) => sum + Number(value),
+              0,
+            ) +
+              Object.values(equity).reduce(
+                (sum: number, value: any) => sum + Number(value),
+                0,
+              )
               ? "✓ Balanced"
               : "✗ Unbalanced"}
           </Text>

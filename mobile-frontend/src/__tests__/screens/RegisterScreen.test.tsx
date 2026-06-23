@@ -1,7 +1,7 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { Provider } from "react-redux";
 import configureStore from "redux-mock-store";
-import thunk from "redux-thunk";
+import { thunk } from "redux-thunk";
 import RegisterScreen from "../../screens/auth/RegisterScreen";
 
 // Mock navigation
@@ -11,11 +11,11 @@ const mockNavigation = {
 };
 
 // Mock Redux store
-const middlewares = [thunk];
+const middlewares: any[] = [thunk];
 const mockStore = configureStore(middlewares);
 
 describe("RegisterScreen", () => {
-  let store;
+  let store: any;
 
   beforeEach(() => {
     store = mockStore({
@@ -35,33 +35,34 @@ describe("RegisterScreen", () => {
   });
 
   it("renders correctly", () => {
-    const { getByText, getByPlaceholderText } = render(
+    const { getAllByText, getByText, getByPlaceholderText } = render(
       <Provider store={store}>
         <RegisterScreen navigation={mockNavigation} />
       </Provider>,
     );
 
     // Check if important elements are rendered
-    expect(getByText("Create Account")).toBeTruthy();
+    expect(getAllByText("Create Account").length).toBeGreaterThan(0);
     expect(getByText("Join FinFlow to manage your finances")).toBeTruthy();
     expect(getByPlaceholderText("Enter your first name")).toBeTruthy();
     expect(getByPlaceholderText("Enter your last name")).toBeTruthy();
     expect(getByPlaceholderText("Enter your email")).toBeTruthy();
     expect(getByPlaceholderText("Create a password")).toBeTruthy();
     expect(getByPlaceholderText("Confirm your password")).toBeTruthy();
-    expect(getByText("Create Account")).toBeTruthy();
+    expect(getAllByText("Create Account").length).toBeGreaterThan(0);
     expect(getByText("Sign in")).toBeTruthy();
   });
 
   it("shows validation errors when form is submitted with empty fields", () => {
-    const { getByText } = render(
+    const { getAllByText, getByText } = render(
       <Provider store={store}>
         <RegisterScreen navigation={mockNavigation} />
       </Provider>,
     );
 
     // Submit the form without filling any fields
-    fireEvent.press(getByText("Create Account"));
+    const _caBtns = getAllByText("Create Account");
+    fireEvent.press(_caBtns[_caBtns.length - 1]);
 
     // Check if validation errors are shown
     expect(getByText("First name is required")).toBeTruthy();
@@ -72,7 +73,7 @@ describe("RegisterScreen", () => {
   });
 
   it("shows validation error when email format is invalid", () => {
-    const { getByText, getByPlaceholderText } = render(
+    const { getAllByText, getByText, getByPlaceholderText } = render(
       <Provider store={store}>
         <RegisterScreen navigation={mockNavigation} />
       </Provider>,
@@ -95,14 +96,15 @@ describe("RegisterScreen", () => {
     );
 
     // Submit the form
-    fireEvent.press(getByText("Create Account"));
+    const _caBtns = getAllByText("Create Account");
+    fireEvent.press(_caBtns[_caBtns.length - 1]);
 
     // Check if validation error is shown
     expect(getByText("Email is invalid")).toBeTruthy();
   });
 
   it("shows validation error when password is too short", () => {
-    const { getByText, getByPlaceholderText } = render(
+    const { getAllByText, getByText, getByPlaceholderText } = render(
       <Provider store={store}>
         <RegisterScreen navigation={mockNavigation} />
       </Provider>,
@@ -119,14 +121,15 @@ describe("RegisterScreen", () => {
     fireEvent.changeText(getByPlaceholderText("Confirm your password"), "1234");
 
     // Submit the form
-    fireEvent.press(getByText("Create Account"));
+    const _caBtns = getAllByText("Create Account");
+    fireEvent.press(_caBtns[_caBtns.length - 1]);
 
     // Check if validation error is shown
     expect(getByText("Password must be at least 8 characters")).toBeTruthy();
   });
 
   it("shows validation error when passwords do not match", () => {
-    const { getByText, getByPlaceholderText } = render(
+    const { getAllByText, getByText, getByPlaceholderText } = render(
       <Provider store={store}>
         <RegisterScreen navigation={mockNavigation} />
       </Provider>,
@@ -149,14 +152,15 @@ describe("RegisterScreen", () => {
     );
 
     // Submit the form
-    fireEvent.press(getByText("Create Account"));
+    const _caBtns = getAllByText("Create Account");
+    fireEvent.press(_caBtns[_caBtns.length - 1]);
 
     // Check if validation error is shown
     expect(getByText("Passwords do not match")).toBeTruthy();
   });
 
   it("dispatches register action when form is valid", async () => {
-    const { getByText, getByPlaceholderText } = render(
+    const { getAllByText, getByText, getByPlaceholderText } = render(
       <Provider store={store}>
         <RegisterScreen navigation={mockNavigation} />
       </Provider>,
@@ -179,7 +183,8 @@ describe("RegisterScreen", () => {
     );
 
     // Submit the form
-    fireEvent.press(getByText("Create Account"));
+    const _caBtns = getAllByText("Create Account");
+    fireEvent.press(_caBtns[_caBtns.length - 1]);
 
     // Check if register action was dispatched
     await waitFor(() => {
@@ -188,7 +193,7 @@ describe("RegisterScreen", () => {
   });
 
   it("navigates to login screen when sign in is pressed", () => {
-    const { getByText } = render(
+    const { getAllByText, getByText } = render(
       <Provider store={store}>
         <RegisterScreen navigation={mockNavigation} />
       </Provider>,
@@ -212,7 +217,7 @@ describe("RegisterScreen", () => {
       },
     });
 
-    const { getByText } = render(
+    const { getAllByText, getByText } = render(
       <Provider store={storeWithError}>
         <RegisterScreen navigation={mockNavigation} />
       </Provider>,
@@ -233,14 +238,13 @@ describe("RegisterScreen", () => {
       },
     });
 
-    const { getByText } = render(
+    const { getByTestId } = render(
       <Provider store={loadingStore}>
         <RegisterScreen navigation={mockNavigation} />
       </Provider>,
     );
 
-    // The button should be in loading state
-    const registerButton = getByText("Create Account").parent;
-    expect(registerButton.props.disabled).toBe(true);
+    // While loading, the submit button shows a spinner and is disabled.
+    expect(getByTestId("register-submit-button")).toBeDisabled();
   });
 });

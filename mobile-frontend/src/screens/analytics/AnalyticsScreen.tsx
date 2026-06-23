@@ -170,7 +170,7 @@ const AnalyticsScreen: React.FC = () => {
       <Card style={styles.insightsCard}>
         <Text style={styles.cardTitle}>Key Insights</Text>
         {revenueAnalytics?.insights ? (
-          revenueAnalytics.insights.map((insight, index) => (
+          revenueAnalytics.insights.map((insight: string, index: number) => (
             <View key={index} style={styles.insightItem}>
               <Text style={styles.insightText}>{insight}</Text>
             </View>

@@ -9,20 +9,27 @@ import {
 } from "react-native";
 
 interface ErrorStateProps {
-  title: string;
+  title?: string;
   message: string;
   buttonText?: string;
   onButtonPress?: () => void;
+  // Aliases used by screens: a retry callback and its label.
+  onRetry?: () => void;
+  retryText?: string;
   loading?: boolean;
 }
 
 const ErrorState: React.FC<ErrorStateProps> = ({
-  title,
+  title = "Something went wrong",
   message,
-  buttonText = "Try Again",
+  buttonText,
   onButtonPress,
+  onRetry,
+  retryText,
   loading = false,
 }) => {
+  const handlePress = onButtonPress ?? onRetry;
+  const label = buttonText ?? retryText ?? "Try Again";
   return (
     <View style={styles.container}>
       <Ionicons
@@ -34,16 +41,16 @@ const ErrorState: React.FC<ErrorStateProps> = ({
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.message}>{message}</Text>
 
-      {buttonText && onButtonPress && (
+      {handlePress && (
         <TouchableOpacity
           style={styles.button}
-          onPress={onButtonPress}
+          onPress={handlePress}
           disabled={loading}
         >
           {loading ? (
             <ActivityIndicator size="small" color="#ffffff" />
           ) : (
-            <Text style={styles.buttonText}>{buttonText}</Text>
+            <Text style={styles.buttonText}>{label}</Text>
           )}
         </TouchableOpacity>
       )}

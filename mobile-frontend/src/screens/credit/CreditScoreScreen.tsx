@@ -22,21 +22,21 @@ const CreditScoreScreen: React.FC = () => {
     dispatch(fetchCreditScore());
   }, [dispatch]);
 
-  if (isLoading || !creditScore) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3498db" />
-        <Text style={styles.loadingText}>Loading credit score...</Text>
-      </View>
-    );
-  }
-
   if (error) {
     return (
       <View style={styles.container}>
         <Card style={styles.errorCard}>
           <Text style={styles.errorText}>{error}</Text>
         </Card>
+      </View>
+    );
+  }
+
+  if (isLoading || !creditScore) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#3498db" />
+        <Text style={styles.loadingText}>Loading credit score...</Text>
       </View>
     );
   }

@@ -1,7 +1,7 @@
 import { fireEvent, render } from "@testing-library/react-native";
 import { Provider } from "react-redux";
 import configureStore from "redux-mock-store";
-import thunk from "redux-thunk";
+import { thunk } from "redux-thunk";
 import PaymentsScreen from "../../screens/payments/PaymentsScreen";
 
 // Mock navigation
@@ -10,7 +10,7 @@ const mockNavigation = {
 };
 
 // Mock Redux store
-const middlewares = [thunk];
+const middlewares: any[] = [thunk];
 const mockStore = configureStore(middlewares);
 
 // Mock data
@@ -46,7 +46,7 @@ const mockPaymentsData = {
 };
 
 describe("PaymentsScreen", () => {
-  let store;
+  let store: any;
 
   beforeEach(() => {
     store = mockStore(mockPaymentsData);
@@ -212,14 +212,13 @@ describe("PaymentsScreen", () => {
       },
     });
 
-    const { getByText } = render(
+    const { getByTestId } = render(
       <Provider store={multiPageStore}>
         <PaymentsScreen navigation={mockNavigation} />
       </Provider>,
     );
 
-    // Check if Previous button is disabled
-    const previousButton = getByText("Previous").parent;
-    expect(previousButton.props.disabled).toBe(true);
+    // On the first page the Previous button is disabled.
+    expect(getByTestId("previous-button")).toBeDisabled();
   });
 });

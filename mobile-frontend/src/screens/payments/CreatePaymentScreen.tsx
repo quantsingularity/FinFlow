@@ -8,7 +8,7 @@ import InputField from "../../components/common/InputField";
 import type { AppDispatch, RootState } from "../../store";
 import { createPayment } from "../../store/slices/paymentsSlice";
 
-const CreatePaymentScreen: React.FC = ({ navigation }: any) => {
+const CreatePaymentScreen: React.FC<any> = ({ navigation }: any) => {
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState("usd");
   const [processorType, setProcessorType] = useState("stripe");
@@ -54,7 +54,7 @@ const CreatePaymentScreen: React.FC = ({ navigation }: any) => {
         const paymentData = {
           amount: parseFloat(amount),
           currency,
-          processorType,
+          processorType: processorType as "stripe" | "paypal" | "square",
           source,
           metadata: {
             description,
@@ -67,7 +67,7 @@ const CreatePaymentScreen: React.FC = ({ navigation }: any) => {
           "Your payment has been processed successfully.",
           [{ text: "OK", onPress: () => navigation.goBack() }],
         );
-      } catch (err) {
+      } catch (err: any) {
         Alert.alert("Payment Failed", err.toString());
       }
     }

@@ -40,7 +40,7 @@ export const fetchJournalEntries = createAsyncThunk(
 
 export const fetchBalanceSheet = createAsyncThunk(
   "accounting/fetchBalanceSheet",
-  async (date?: string, { rejectWithValue }) => {
+  async (date: string | undefined, { rejectWithValue }) => {
     try {
       const response = await accountingApi.getBalanceSheet(date);
       return response.data;

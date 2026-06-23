@@ -24,7 +24,7 @@ const initialState: CreditState = {
 
 export const fetchCreditScore = createAsyncThunk(
   "credit/fetchCreditScore",
-  async (userId?: string, { rejectWithValue }) => {
+  async (userId: string | undefined, { rejectWithValue }) => {
     try {
       const response = await creditApi.getCreditScore(userId);
       return response.data;

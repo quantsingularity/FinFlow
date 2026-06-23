@@ -14,7 +14,7 @@ import ErrorState from "../../components/common/ErrorState";
 import type { AppDispatch, RootState } from "../../store";
 import { fetchLoanById } from "../../store/slices/creditSlice";
 
-const LoanDetailsScreen: React.FC = ({ route, navigation }: any) => {
+const LoanDetailsScreen: React.FC<any> = ({ route, navigation }: any) => {
   const { id } = route.params;
   const dispatch = useDispatch<AppDispatch>();
   const { currentLoan, isLoading, error } = useSelector(

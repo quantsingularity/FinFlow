@@ -1,7 +1,7 @@
 import { fireEvent, render } from "@testing-library/react-native";
 import { Provider } from "react-redux";
 import configureStore from "redux-mock-store";
-import thunk from "redux-thunk";
+import { thunk } from "redux-thunk";
 import PaymentDetailsScreen from "../../screens/payments/PaymentDetailsScreen";
 
 // Mock navigation
@@ -18,7 +18,7 @@ const mockRoute = {
 };
 
 // Mock Redux store
-const middlewares = [thunk];
+const middlewares: any[] = [thunk];
 const mockStore = configureStore(middlewares);
 
 // Mock data
@@ -43,7 +43,7 @@ const mockPaymentData = {
 };
 
 describe("PaymentDetailsScreen", () => {
-  let store;
+  let store: any;
 
   beforeEach(() => {
     store = mockStore(mockPaymentData);

@@ -1,257 +1,79 @@
-import { beforeEach, describe, expect, jest, test } from "@jest/globals";
-import axios from "axios";
-import paymentService from "../paymentService";
+import { beforeEach, describe, expect, test, vi } from "vitest";
+import api from "../api";
+import {
+  createPayment,
+  getPayment,
+  getPayments,
+  updatePayment,
+} from "../paymentService";
 
-// Mock axios
-jest.mock("axios");
+// The payment service talks to the backend through the configured `api`
+// axios instance, so the instance is mocked here (not axios directly).
+vi.mock("../api", () => ({
+  default: {
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
+  },
+}));
 
-describe("Payment Service", () => {
+const mockedApi = api as unknown as {
+  get: ReturnType<typeof vi.fn>;
+  post: ReturnType<typeof vi.fn>;
+  put: ReturnType<typeof vi.fn>;
+};
+
+describe("paymentService", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
-  describe("processPayment", () => {
-    test("should process payment successfully", async () => {
-      // Arrange
-      const paymentData = {
-        amount: 100,
-        currency: "USD",
-        source: "card_token_123",
-        description: "Test payment",
-        processorType: "STRIPE",
-      };
+  test("getPayments requests the payments collection", async () => {
+    const payments = [{ id: "pay-1" }, { id: "pay-2" }];
+    mockedApi.get.mockResolvedValue({ data: payments });
 
-      const mockResponse = {
-        data: {
-          success: true,
-          data: {
-            id: "payment_123",
-            status: "COMPLETED",
-            amount: 100,
-            currency: "USD",
-            processorId: "ch_123456",
-            createdAt: "2025-05-20T14:30:00Z",
-          },
-        },
-      };
+    const result = await getPayments();
 
-      (axios.post as jest.Mock).mockResolvedValue(mockResponse);
-
-      // Act
-      const result = await paymentService.processPayment(paymentData);
-
-      // Assert
-      expect(axios.post).toHaveBeenCalledWith(
-        "/api/payments",
-        paymentData,
-        expect.any(Object),
-      );
-      expect(result).toEqual(mockResponse.data.data);
-    });
-
-    test("should throw error when payment processing fails", async () => {
-      // Arrange
-      const paymentData = {
-        amount: 100,
-        currency: "USD",
-        source: "invalid_token",
-        description: "Test payment",
-        processorType: "STRIPE",
-      };
-
-      const errorResponse = {
-        response: {
-          data: {
-            success: false,
-            error: "Invalid payment source",
-          },
-          status: 400,
-        },
-      };
-
-      (axios.post as jest.Mock).mockRejectedValue(errorResponse);
-
-      // Act & Assert
-      await expect(paymentService.processPayment(paymentData)).rejects.toThrow(
-        "Invalid payment source",
-      );
-    });
+    expect(mockedApi.get).toHaveBeenCalledWith("/payments");
+    expect(result).toEqual(payments);
   });
 
-  describe("getPayments", () => {
-    test("should fetch payments successfully", async () => {
-      // Arrange
-      const mockPayments = [
-        {
-          id: "payment_1",
-          status: "COMPLETED",
-          amount: 100,
-          currency: "USD",
-          createdAt: "2025-05-20T14:30:00Z",
-        },
-        {
-          id: "payment_2",
-          status: "PENDING",
-          amount: 200,
-          currency: "USD",
-          createdAt: "2025-05-20T14:35:00Z",
-        },
-      ];
+  test("getPayment requests a single payment by id", async () => {
+    const payment = { id: "pay-1" };
+    mockedApi.get.mockResolvedValue({ data: payment });
 
-      const mockResponse = {
-        data: {
-          success: true,
-          data: mockPayments,
-        },
-      };
+    const result = await getPayment("pay-1");
 
-      (axios.get as jest.Mock).mockResolvedValue(mockResponse);
-
-      // Act
-      const result = await paymentService.getPayments();
-
-      // Assert
-      expect(axios.get).toHaveBeenCalledWith(
-        "/api/payments",
-        expect.any(Object),
-      );
-      expect(result).toEqual(mockPayments);
-    });
-
-    test("should throw error when fetching payments fails", async () => {
-      // Arrange
-      const errorResponse = {
-        response: {
-          data: {
-            success: false,
-            error: "Failed to fetch payments",
-          },
-          status: 500,
-        },
-      };
-
-      (axios.get as jest.Mock).mockRejectedValue(errorResponse);
-
-      // Act & Assert
-      await expect(paymentService.getPayments()).rejects.toThrow(
-        "Failed to fetch payments",
-      );
-    });
+    expect(mockedApi.get).toHaveBeenCalledWith("/payments/pay-1");
+    expect(result).toEqual(payment);
   });
 
-  describe("getPaymentStatus", () => {
-    test("should get payment status successfully", async () => {
-      // Arrange
-      const paymentId = "payment_123";
-      const mockStatus = {
-        status: "COMPLETED",
-        updatedAt: "2025-05-20T14:40:00Z",
-      };
+  test("createPayment posts to the charge endpoint", async () => {
+    const input = { userId: "user-1", amount: 100, currency: "USD" };
+    const created = { id: "pay-new", status: "PENDING", ...input };
+    mockedApi.post.mockResolvedValue({ data: created });
 
-      const mockResponse = {
-        data: {
-          success: true,
-          data: mockStatus,
-        },
-      };
+    const result = await createPayment(input as never);
 
-      (axios.get as jest.Mock).mockResolvedValue(mockResponse);
-
-      // Act
-      const result = await paymentService.getPaymentStatus(paymentId);
-
-      // Assert
-      expect(axios.get).toHaveBeenCalledWith(
-        `/api/payments/${paymentId}/status`,
-        expect.any(Object),
-      );
-      expect(result).toEqual(mockStatus);
-    });
-
-    test("should throw error when payment not found", async () => {
-      // Arrange
-      const nonExistentPaymentId = "non_existent_payment";
-      const errorResponse = {
-        response: {
-          data: {
-            success: false,
-            error: "Payment not found",
-          },
-          status: 404,
-        },
-      };
-
-      (axios.get as jest.Mock).mockRejectedValue(errorResponse);
-
-      // Act & Assert
-      await expect(
-        paymentService.getPaymentStatus(nonExistentPaymentId),
-      ).rejects.toThrow("Payment not found");
-    });
+    expect(mockedApi.post).toHaveBeenCalledWith("/payments/charge", input);
+    expect(result).toEqual(created);
   });
 
-  describe("refundPayment", () => {
-    test("should refund payment successfully", async () => {
-      // Arrange
-      const paymentId = "payment_123";
-      const refundData = {
-        amount: 100,
-        reason: "Customer requested",
-      };
+  test("updatePayment puts to the payment id endpoint", async () => {
+    const updated = { id: "pay-1", status: "COMPLETED" };
+    mockedApi.put.mockResolvedValue({ data: updated });
 
-      const mockRefund = {
-        id: "refund_123",
-        paymentId,
-        amount: 100,
-        status: "completed",
-        createdAt: "2025-05-20T14:45:00Z",
-      };
+    const result = await updatePayment("pay-1", { status: "COMPLETED" });
 
-      const mockResponse = {
-        data: {
-          success: true,
-          data: mockRefund,
-        },
-      };
-
-      (axios.post as jest.Mock).mockResolvedValue(mockResponse);
-
-      // Act
-      const result = await paymentService.refundPayment(paymentId, refundData);
-
-      // Assert
-      expect(axios.post).toHaveBeenCalledWith(
-        `/api/payments/${paymentId}/refund`,
-        refundData,
-        expect.any(Object),
-      );
-      expect(result).toEqual(mockRefund);
+    expect(mockedApi.put).toHaveBeenCalledWith("/payments/pay-1", {
+      status: "COMPLETED",
     });
+    expect(result).toEqual(updated);
+  });
 
-    test("should throw error when refund fails", async () => {
-      // Arrange
-      const paymentId = "payment_123";
-      const refundData = {
-        amount: 200, // More than original payment
-        reason: "Customer requested",
-      };
-
-      const errorResponse = {
-        response: {
-          data: {
-            success: false,
-            error: "Refund amount exceeds payment amount",
-          },
-          status: 400,
-        },
-      };
-
-      (axios.post as jest.Mock).mockRejectedValue(errorResponse);
-
-      // Act & Assert
-      await expect(
-        paymentService.refundPayment(paymentId, refundData),
-      ).rejects.toThrow("Refund amount exceeds payment amount");
-    });
+  test("propagates errors from the api layer", async () => {
+    mockedApi.get.mockRejectedValue(new Error("network"));
+    await expect(getPayments()).rejects.toThrow("network");
   });
 });

@@ -122,7 +122,11 @@ check_prerequisites() {
   fi
   
   # Check if Docker Compose is installed
-  if ! command -v docker-compose &> /dev/null && ! command -v docker compose &> /dev/null; then\n    DOCKER_COMPOSE_CMD="docker-compose"\n  elif command -v docker compose &> /dev/null; then\n    DOCKER_COMPOSE_CMD="docker compose"\n  else
+  if command -v docker-compose &> /dev/null; then
+    DOCKER_COMPOSE_CMD="docker-compose"
+  elif command -v docker compose &> /dev/null; then
+    DOCKER_COMPOSE_CMD="docker compose"
+  else
     print_error "Docker Compose is required but not installed."
     log_message "ERROR" "Docker Compose is required but not installed"
     exit 1
@@ -1314,7 +1318,7 @@ perform_action() {
         print_error "Docker Compose file not found"
         log_message "ERROR" "Docker Compose file not found"
         return 1
-      }
+      fi
       
       # Stop the monitoring stack
       (cd "$MONITORING_DIR" && docker-compose down) || {
@@ -1336,7 +1340,7 @@ perform_action() {
         print_error "Docker Compose file not found"
         log_message "ERROR" "Docker Compose file not found"
         return 1
-      }
+      fi
       
       # Check monitoring stack status
       (cd "$MONITORING_DIR" && docker-compose ps) || {

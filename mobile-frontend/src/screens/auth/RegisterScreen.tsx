@@ -14,7 +14,7 @@ import InputField from "../../components/common/InputField";
 import type { AppDispatch, RootState } from "../../store";
 import { register } from "../../store/slices/authSlice";
 
-const RegisterScreen: React.FC = ({ navigation }: any) => {
+const RegisterScreen: React.FC<any> = ({ navigation }: any) => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -96,7 +96,7 @@ const RegisterScreen: React.FC = ({ navigation }: any) => {
           "Your account has been created. Please check your email for verification.",
           [{ text: "OK", onPress: () => navigation.navigate("Login") }],
         );
-      } catch (err) {
+      } catch (err: any) {
         Alert.alert("Registration Failed", err.toString());
       }
     }
@@ -162,6 +162,7 @@ const RegisterScreen: React.FC = ({ navigation }: any) => {
         />
 
         <Button
+          testID="register-submit-button"
           title="Create Account"
           onPress={handleRegister}
           loading={isLoading}

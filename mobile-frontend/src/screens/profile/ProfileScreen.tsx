@@ -19,7 +19,7 @@ import {
   updateProfile,
 } from "../../store/slices/authSlice";
 
-const ProfileScreen: React.FC = ({ navigation }: any) => {
+const ProfileScreen: React.FC<any> = ({ navigation }: any) => {
   const dispatch = useDispatch<AppDispatch>();
   const { user, isLoading } = useSelector((state: RootState) => state.auth);
 

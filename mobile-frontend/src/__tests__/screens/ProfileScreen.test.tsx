@@ -1,9 +1,10 @@
 import { render } from "@testing-library/react-native";
 import { Provider } from "react-redux";
 import configureStore from "redux-mock-store";
-import ProfileScreen from "../../../screens/profile/ProfileScreen";
+import { thunk } from "redux-thunk";
+import ProfileScreen from "../../screens/profile/ProfileScreen";
 
-const mockStore = configureStore([]);
+const mockStore = configureStore([thunk] as any[]);
 
 describe("ProfileScreen", () => {
   let store: any;

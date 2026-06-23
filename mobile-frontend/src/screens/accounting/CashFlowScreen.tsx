@@ -13,7 +13,7 @@ import ErrorState from "../../components/common/ErrorState";
 import type { AppDispatch, RootState } from "../../store";
 import { fetchCashFlowStatement } from "../../store/slices/accountingSlice";
 
-const CashFlowScreen: React.FC = ({ route }: any) => {
+const CashFlowScreen: React.FC<any> = ({ route }: any) => {
   const dispatch = useDispatch<AppDispatch>();
   const { cashFlowStatement, isLoading, error } = useSelector(
     (state: RootState) => state.accounting,

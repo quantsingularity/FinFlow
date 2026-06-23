@@ -5,7 +5,25 @@ import { Provider } from "react-redux";
 import LoginScreen from "../../screens/auth/LoginScreen";
 import { store } from "../../store";
 
-jest.mock("axios");
+// Provide a complete axios mock at load time. api.ts instantiates a singleton
+// at import (registering interceptors), which runs before beforeEach, so the
+// mocked axios.create must already return an object exposing interceptors.
+jest.mock("axios", () => {
+  const mAxios: any = {
+    interceptors: {
+      request: { use: jest.fn() },
+      response: { use: jest.fn() },
+    },
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
+    request: jest.fn(),
+  };
+  mAxios.create = jest.fn(() => mAxios);
+  return { __esModule: true, default: mAxios };
+});
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe("Login Integration Test", () => {
@@ -15,7 +33,6 @@ describe("Login Integration Test", () => {
     navigation = {
       navigate: jest.fn(),
     };
-    mockedAxios.create.mockReturnValue(mockedAxios as any);
   });
 
   afterEach(() => {

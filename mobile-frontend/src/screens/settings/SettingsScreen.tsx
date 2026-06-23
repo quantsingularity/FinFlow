@@ -12,7 +12,7 @@ import {
 import Button from "../../components/common/Button";
 import Card from "../../components/common/Card";
 
-const SettingsScreen: React.FC = ({ navigation }: any) => {
+const SettingsScreen: React.FC<any> = ({ navigation }: any) => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [biometricsEnabled, setBiometricsEnabled] = useState(false);
   const [darkModeEnabled, setDarkModeEnabled] = useState(false);

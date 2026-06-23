@@ -42,7 +42,7 @@ const Login: React.FC = () => {
     },
   });
 
-  const onSubmit = async (_data: LoginFormValues) => {
+  const onSubmit = async () => {
     setIsLoading(true);
 
     // Simulate API call

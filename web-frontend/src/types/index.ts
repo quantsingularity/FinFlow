@@ -42,8 +42,8 @@ export interface Payment {
   currency: string;
   status: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED" | "REFUNDED";
   processorId?: string;
-  processorData?: any;
-  metadata?: any;
+  processorData?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 }

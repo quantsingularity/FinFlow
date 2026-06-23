@@ -534,7 +534,7 @@ if [ "$REPORT" = true ]; then
   log_message "INFO" "Generating combined code quality report"
   
   # Create combined report
-  local report_file="$REPORT_DIR/combined-quality-report.html"
+  report_file="$REPORT_DIR/combined-quality-report.html"
   
   # Create report header
   cat > "$report_file" << EOL
@@ -608,13 +608,13 @@ EOL
   
   # Add service-specific results
   if [ "$SERVICES" = "all" ]; then
-    local all_services=("auth-service" "payments-service" "accounting-service" "analytics-service" "credit-engine" "web-frontend" "mobile-frontend")
+    all_services=("auth-service" "payments-service" "accounting-service" "analytics-service" "credit-engine" "web-frontend" "mobile-frontend")
   else
     IFS=',' read -ra all_services <<< "$SERVICES"
   fi
   
   for service in "${all_services[@]}"; do
-    local service_dir=""
+    service_dir=""
     if [[ "$service" == *"frontend"* ]]; then
       service_dir="$PROJECT_ROOT/$service"
     else

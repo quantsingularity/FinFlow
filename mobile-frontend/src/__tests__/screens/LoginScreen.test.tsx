@@ -1,7 +1,7 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { Provider } from "react-redux";
 import configureStore from "redux-mock-store";
-import thunk from "redux-thunk";
+import { thunk } from "redux-thunk";
 import LoginScreen from "../../screens/auth/LoginScreen";
 
 // Mock navigation
@@ -10,11 +10,11 @@ const mockNavigation = {
 };
 
 // Mock Redux store
-const middlewares = [thunk];
+const middlewares: any[] = [thunk];
 const mockStore = configureStore(middlewares);
 
 describe("LoginScreen", () => {
-  let store;
+  let store: any;
 
   beforeEach(() => {
     store = mockStore({
@@ -193,14 +193,13 @@ describe("LoginScreen", () => {
       },
     });
 
-    const { getByText } = render(
+    const { getByTestId } = render(
       <Provider store={loadingStore}>
         <LoginScreen navigation={mockNavigation} />
       </Provider>,
     );
 
-    // The button should be in loading state
-    const loginButton = getByText("Sign In").parent;
-    expect(loginButton.props.disabled).toBe(true);
+    // While loading, the submit button shows a spinner and is disabled.
+    expect(getByTestId("login-submit-button")).toBeDisabled();
   });
 });

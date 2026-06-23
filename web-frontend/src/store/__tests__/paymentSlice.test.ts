@@ -1,248 +1,111 @@
-import { beforeEach, describe, expect, jest, test } from "@jest/globals";
-import configureStore from "redux-mock-store";
-import thunk from "redux-thunk";
-import paymentService from "../../services/paymentService";
+import { describe, expect, test } from "vitest";
+import type { Payment, PaymentState } from "../../types";
 import paymentReducer, {
-  fetchPayments,
-  fetchPaymentsFailure,
-  fetchPaymentsStart,
-  fetchPaymentsSuccess,
-  getPaymentStatus,
-  paymentFailure,
-  paymentStart,
-  paymentSuccess,
-  processPayment,
-  resetPaymentState,
+  clearPaymentError,
+  createPaymentFailure,
+  createPaymentStart,
+  createPaymentSuccess,
+  getPaymentsFailure,
+  getPaymentsStart,
+  getPaymentsSuccess,
+  setCurrentPayment,
+  updatePaymentSuccess,
 } from "../paymentSlice";
 
-// Mock the payment service
-jest.mock("../../services/paymentService");
+const initialState: PaymentState = {
+  payments: [],
+  currentPayment: null,
+  isLoading: false,
+  error: null,
+};
 
-const middlewares = [thunk];
-const mockStore = configureStore(middlewares);
+const makePayment = (overrides: Partial<Payment> = {}): Payment => ({
+  id: "pay-1",
+  userId: "user-1",
+  amount: 100,
+  currency: "USD",
+  status: "PENDING",
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  ...overrides,
+});
 
-describe("Payment Slice", () => {
-  describe("Reducers", () => {
-    const initialState = {
-      payments: [],
-      currentPayment: null,
-      loading: false,
-      error: null,
-      success: false,
-      processors: [
-        { id: "STRIPE", name: "Stripe", icon: "stripe-icon.svg" },
-        { id: "PAYPAL", name: "PayPal", icon: "paypal-icon.svg" },
-        { id: "SQUARE", name: "Square", icon: "square-icon.svg" },
-      ],
-    };
-
-    test("should return the initial state", () => {
-      expect(paymentReducer(undefined, { type: undefined })).toEqual(
-        initialState,
-      );
-    });
-
-    test("should handle paymentStart", () => {
-      const nextState = paymentReducer(initialState, paymentStart());
-      expect(nextState.loading).toBe(true);
-      expect(nextState.error).toBeNull();
-      expect(nextState.success).toBe(false);
-    });
-
-    test("should handle paymentSuccess", () => {
-      const mockPayment = {
-        id: "payment_123",
-        amount: 100,
-        currency: "USD",
-        status: "COMPLETED",
-      };
-
-      const nextState = paymentReducer(
-        initialState,
-        paymentSuccess(mockPayment),
-      );
-      expect(nextState.loading).toBe(false);
-      expect(nextState.currentPayment).toEqual(mockPayment);
-      expect(nextState.payments).toContainEqual(mockPayment);
-      expect(nextState.success).toBe(true);
-      expect(nextState.error).toBeNull();
-    });
-
-    test("should handle paymentFailure", () => {
-      const errorMessage = "Payment processing failed";
-      const nextState = paymentReducer(
-        initialState,
-        paymentFailure(errorMessage),
-      );
-      expect(nextState.loading).toBe(false);
-      expect(nextState.error).toBe(errorMessage);
-      expect(nextState.success).toBe(false);
-    });
-
-    test("should handle fetchPaymentsStart", () => {
-      const nextState = paymentReducer(initialState, fetchPaymentsStart());
-      expect(nextState.loading).toBe(true);
-      expect(nextState.error).toBeNull();
-    });
-
-    test("should handle fetchPaymentsSuccess", () => {
-      const mockPayments = [
-        { id: "payment_1", amount: 100, currency: "USD", status: "COMPLETED" },
-        { id: "payment_2", amount: 200, currency: "USD", status: "PENDING" },
-      ];
-
-      const nextState = paymentReducer(
-        initialState,
-        fetchPaymentsSuccess(mockPayments),
-      );
-      expect(nextState.loading).toBe(false);
-      expect(nextState.payments).toEqual(mockPayments);
-      expect(nextState.error).toBeNull();
-    });
-
-    test("should handle fetchPaymentsFailure", () => {
-      const errorMessage = "Failed to fetch payments";
-      const nextState = paymentReducer(
-        initialState,
-        fetchPaymentsFailure(errorMessage),
-      );
-      expect(nextState.loading).toBe(false);
-      expect(nextState.error).toBe(errorMessage);
-    });
-
-    test("should handle resetPaymentState", () => {
-      // Start with a non-initial state
-      const modifiedState = {
-        ...initialState,
-        loading: true,
-        error: "Some error",
-        success: true,
-        currentPayment: { id: "payment_123" },
-      };
-
-      const nextState = paymentReducer(modifiedState, resetPaymentState());
-      expect(nextState.loading).toBe(false);
-      expect(nextState.error).toBeNull();
-      expect(nextState.success).toBe(false);
-      expect(nextState.currentPayment).toBeNull();
-      // Payments array should remain unchanged
-      expect(nextState.payments).toEqual(modifiedState.payments);
-    });
+describe("paymentSlice reducer", () => {
+  test("returns the initial state", () => {
+    expect(paymentReducer(undefined, { type: "@@INIT" })).toEqual(initialState);
   });
 
-  describe("Thunks", () => {
-    let store;
+  test("getPaymentsStart sets loading and clears error", () => {
+    const state = paymentReducer(
+      { ...initialState, error: "previous" },
+      getPaymentsStart(),
+    );
+    expect(state.isLoading).toBe(true);
+    expect(state.error).toBeNull();
+  });
 
-    beforeEach(() => {
-      store = mockStore({
-        payment: {
-          payments: [],
-          currentPayment: null,
-          loading: false,
-          error: null,
-          success: false,
-        },
-      });
-    });
+  test("getPaymentsSuccess stores payments and clears loading", () => {
+    const payments = [makePayment(), makePayment({ id: "pay-2" })];
+    const state = paymentReducer(
+      { ...initialState, isLoading: true },
+      getPaymentsSuccess(payments),
+    );
+    expect(state.isLoading).toBe(false);
+    expect(state.payments).toHaveLength(2);
+  });
 
-    test("processPayment should create paymentSuccess when payment processing succeeds", async () => {
-      const mockPaymentData = {
-        amount: 100,
-        currency: "USD",
-        source: "card_token_123",
-        description: "Test payment",
-        processorType: "STRIPE",
-      };
+  test("getPaymentsFailure records the error", () => {
+    const state = paymentReducer(
+      { ...initialState, isLoading: true },
+      getPaymentsFailure("network error"),
+    );
+    expect(state.isLoading).toBe(false);
+    expect(state.error).toBe("network error");
+  });
 
-      const mockPaymentResponse = {
-        id: "payment_123",
-        amount: 100,
-        currency: "USD",
-        status: "COMPLETED",
-      };
+  test("createPayment lifecycle appends and sets current", () => {
+    let state = paymentReducer(initialState, createPaymentStart());
+    expect(state.isLoading).toBe(true);
+    const payment = makePayment({ id: "pay-new" });
+    state = paymentReducer(state, createPaymentSuccess(payment));
+    expect(state.isLoading).toBe(false);
+    expect(state.payments).toContainEqual(payment);
+    expect(state.currentPayment).toEqual(payment);
+  });
 
-      (paymentService.processPayment as jest.Mock).mockResolvedValue(
-        mockPaymentResponse,
-      );
+  test("createPaymentFailure records the error", () => {
+    const state = paymentReducer(
+      { ...initialState, isLoading: true },
+      createPaymentFailure("declined"),
+    );
+    expect(state.error).toBe("declined");
+    expect(state.isLoading).toBe(false);
+  });
 
-      await store.dispatch(processPayment(mockPaymentData));
-      const actions = store.getActions();
+  test("updatePaymentSuccess replaces the matching payment", () => {
+    const existing = makePayment({ id: "pay-1", status: "PENDING" });
+    const updated = makePayment({ id: "pay-1", status: "COMPLETED" });
+    const state = paymentReducer(
+      { ...initialState, payments: [existing] },
+      updatePaymentSuccess(updated),
+    );
+    expect(state.payments[0].status).toBe("COMPLETED");
+    expect(state.currentPayment).toEqual(updated);
+  });
 
-      expect(actions[0].type).toBe("payment/paymentStart");
-      expect(actions[1].type).toBe("payment/paymentSuccess");
-      expect(actions[1].payload).toEqual(mockPaymentResponse);
-    });
+  test("setCurrentPayment sets and clears the current payment", () => {
+    const payment = makePayment();
+    let state = paymentReducer(initialState, setCurrentPayment(payment));
+    expect(state.currentPayment).toEqual(payment);
+    state = paymentReducer(state, setCurrentPayment(null));
+    expect(state.currentPayment).toBeNull();
+  });
 
-    test("processPayment should create paymentFailure when payment processing fails", async () => {
-      const mockPaymentData = {
-        amount: 100,
-        currency: "USD",
-        source: "card_token_123",
-        description: "Test payment",
-        processorType: "STRIPE",
-      };
-
-      const errorMessage = "Payment processing failed";
-      const error = new Error(errorMessage);
-      (paymentService.processPayment as jest.Mock).mockRejectedValue(error);
-
-      try {
-        await store.dispatch(processPayment(mockPaymentData));
-      } catch (_error) {
-        // Expected to throw
-      }
-
-      const actions = store.getActions();
-      expect(actions[0].type).toBe("payment/paymentStart");
-      expect(actions[1].type).toBe("payment/paymentFailure");
-      expect(actions[1].payload).toBe(errorMessage);
-    });
-
-    test("fetchPayments should create fetchPaymentsSuccess when fetching succeeds", async () => {
-      const mockPayments = [
-        { id: "payment_1", amount: 100, currency: "USD", status: "COMPLETED" },
-        { id: "payment_2", amount: 200, currency: "USD", status: "PENDING" },
-      ];
-
-      (paymentService.getPayments as jest.Mock).mockResolvedValue(mockPayments);
-
-      await store.dispatch(fetchPayments());
-      const actions = store.getActions();
-
-      expect(actions[0].type).toBe("payment/fetchPaymentsStart");
-      expect(actions[1].type).toBe("payment/fetchPaymentsSuccess");
-      expect(actions[1].payload).toEqual(mockPayments);
-    });
-
-    test("fetchPayments should create fetchPaymentsFailure when fetching fails", async () => {
-      const errorMessage = "Failed to fetch payments";
-      const error = new Error(errorMessage);
-      (paymentService.getPayments as jest.Mock).mockRejectedValue(error);
-
-      try {
-        await store.dispatch(fetchPayments());
-      } catch (_error) {
-        // Expected to throw
-      }
-
-      const actions = store.getActions();
-      expect(actions[0].type).toBe("payment/fetchPaymentsStart");
-      expect(actions[1].type).toBe("payment/fetchPaymentsFailure");
-      expect(actions[1].payload).toBe(errorMessage);
-    });
-
-    test("getPaymentStatus should call the payment service correctly", async () => {
-      const paymentId = "payment_123";
-      const mockStatus = { status: "COMPLETED", updatedAt: new Date() };
-
-      (paymentService.getPaymentStatus as jest.Mock).mockResolvedValue(
-        mockStatus,
-      );
-
-      const result = await store.dispatch(getPaymentStatus(paymentId));
-
-      expect(paymentService.getPaymentStatus).toHaveBeenCalledWith(paymentId);
-      expect(result).toEqual(mockStatus);
-    });
+  test("clearPaymentError clears the error", () => {
+    const state = paymentReducer(
+      { ...initialState, error: "boom" },
+      clearPaymentError(),
+    );
+    expect(state.error).toBeNull();
   });
 });

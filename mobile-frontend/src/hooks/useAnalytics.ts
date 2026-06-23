@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../store";
 import { fetchDashboardMetrics } from "../store/slices/analyticsSlice";
@@ -15,13 +15,13 @@ export const useAnalytics = (
     error,
   } = useSelector((state: RootState) => state.analytics);
 
+  const loadDashboardData = useCallback(() => {
+    dispatch(fetchDashboardMetrics());
+  }, [dispatch]);
+
   useEffect(() => {
     loadDashboardData();
   }, [loadDashboardData]);
-
-  const loadDashboardData = () => {
-    dispatch(fetchDashboardMetrics());
-  };
 
   return {
     dashboardMetrics,

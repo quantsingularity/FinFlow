@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../store";
 import {
@@ -12,15 +12,15 @@ export const useAccounting = () => {
   const { balanceSheet, incomeStatement, cashFlowStatement, isLoading, error } =
     useSelector((state: RootState) => state.accounting);
 
+  const loadAccountingData = useCallback(() => {
+    dispatch(fetchBalanceSheet(undefined));
+    dispatch(fetchIncomeStatement({}));
+    dispatch(fetchCashFlowStatement({}));
+  }, [dispatch]);
+
   useEffect(() => {
     loadAccountingData();
   }, [loadAccountingData]);
-
-  const loadAccountingData = () => {
-    dispatch(fetchBalanceSheet());
-    dispatch(fetchIncomeStatement());
-    dispatch(fetchCashFlowStatement());
-  };
 
   const loadBalanceSheet = (date?: string) => {
     dispatch(fetchBalanceSheet(date));

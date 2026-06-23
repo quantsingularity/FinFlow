@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../store";
 import { fetchTransactions } from "../store/slices/paymentsSlice";
@@ -10,13 +10,13 @@ export const usePayments = (limit: number = 10) => {
     (state: RootState) => state.payments,
   );
 
+  const loadTransactions = useCallback(() => {
+    dispatch(fetchTransactions({ page: currentPage, limit }));
+  }, [dispatch, currentPage, limit]);
+
   useEffect(() => {
     loadTransactions();
   }, [loadTransactions]);
-
-  const loadTransactions = () => {
-    dispatch(fetchTransactions({ page: currentPage, limit }));
-  };
 
   const nextPage = () => {
     if (currentPage < pagination.totalPages) {

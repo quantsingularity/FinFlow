@@ -18,7 +18,7 @@ import { fetchDashboardMetrics } from "../../store/slices/analyticsSlice";
 import { fetchCreditScore } from "../../store/slices/creditSlice";
 import { fetchTransactions } from "../../store/slices/paymentsSlice";
 
-const DashboardScreen: React.FC = ({ navigation }: any) => {
+const DashboardScreen: React.FC<any> = ({ navigation }: any) => {
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useSelector((state: RootState) => state.auth);
   const { dashboardMetrics, isLoading: analyticsLoading } = useSelector(

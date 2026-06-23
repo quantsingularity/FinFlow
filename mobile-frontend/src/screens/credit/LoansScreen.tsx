@@ -15,14 +15,14 @@ import ErrorState from "../../components/common/ErrorState";
 import type { AppDispatch, RootState } from "../../store";
 import { fetchLoans } from "../../store/slices/creditSlice";
 
-const LoansScreen: React.FC = ({ navigation }: any) => {
+const LoansScreen: React.FC<any> = ({ navigation }: any) => {
   const dispatch = useDispatch<AppDispatch>();
   const { loans, isLoading, error } = useSelector(
     (state: RootState) => state.credit,
   );
 
   useEffect(() => {
-    dispatch(fetchLoans());
+    dispatch(fetchLoans({}));
   }, [dispatch]);
 
   if (isLoading && loans.length === 0) {
@@ -35,7 +35,7 @@ const LoansScreen: React.FC = ({ navigation }: any) => {
 
   if (error) {
     return (
-      <ErrorState message={error} onRetry={() => dispatch(fetchLoans())} />
+      <ErrorState message={error} onRetry={() => dispatch(fetchLoans({}))} />
     );
   }
 

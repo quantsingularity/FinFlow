@@ -10,7 +10,7 @@ import { useSelector } from "react-redux";
 import Card from "../../components/common/Card";
 import type { RootState } from "../../store";
 
-const CreditScreen: React.FC = ({ navigation }: any) => {
+const CreditScreen: React.FC<any> = ({ navigation }: any) => {
   const { creditScore } = useSelector((state: RootState) => state.credit);
 
   const menuItems = [
