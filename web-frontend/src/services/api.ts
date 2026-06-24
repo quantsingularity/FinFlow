@@ -20,14 +20,27 @@ api.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-// Response interceptor for handling common errors
+// Response interceptor: unwrap the backend's { success, data } envelope so
+// services receive the payload directly, and handle auth errors centrally.
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const body = response.data;
+    if (
+      body &&
+      typeof body === "object" &&
+      "success" in body &&
+      "data" in body
+    ) {
+      response.data = body.data;
+    }
+    return response;
+  },
   (error) => {
     // Handle 401 Unauthorized errors
     if (error.response && error.response.status === 401) {
-      // Clear token and redirect to login
+      // Clear session and redirect to login
       localStorage.removeItem("token");
+      localStorage.removeItem("user");
       window.location.href = "/login";
     }
     return Promise.reject(error);

@@ -14,7 +14,6 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { SidebarContent } from "./Sidebar";
-import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "../../hooks/useAuth";
 import { initials } from "../../lib/format";
 
@@ -50,7 +49,6 @@ export function Topbar() {
       </div>
 
       <div className="ml-auto flex items-center gap-1">
-        <ThemeToggle />
         <Button
           variant="ghost"
           size="icon"

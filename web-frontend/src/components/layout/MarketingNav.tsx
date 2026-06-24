@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { Logo } from "../brand/Logo";
 import { Button } from "../ui/button";
-import { ThemeToggle } from "./ThemeToggle";
 import { useAppSelector } from "../../store/hooks";
 
 export function MarketingNav() {
@@ -30,7 +29,6 @@ export function MarketingNav() {
           </a>
         </nav>
         <div className="flex items-center gap-2">
-          <ThemeToggle />
           {isAuthenticated ? (
             <Button asChild>
               <Link to="/dashboard">Go to dashboard</Link>

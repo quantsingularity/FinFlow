@@ -1,241 +1,190 @@
-import type React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
   View,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from "react-native";
+import {
+  Text,
+  TextInput,
+  Button,
+  HelperText,
+  useTheme,
+} from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
-import Button from "../../components/common/Button";
-import InputField from "../../components/common/InputField";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Logo } from "../../components/common/Logo";
 import type { AppDispatch, RootState } from "../../store";
-import { register } from "../../store/slices/authSlice";
+import { register, clearError } from "../../store/slices/authSlice";
+import type { AppTheme } from "../../theme";
 
 const RegisterScreen: React.FC<any> = ({ navigation }: any) => {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const theme = useTheme<AppTheme>();
+  const insets = useSafeAreaInsets();
+  const dispatch = useDispatch<AppDispatch>();
+  const { isLoading, error } = useSelector((s: RootState) => s.auth);
+
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [show, setShow] = useState(false);
+  const [touched, setTouched] = useState(false);
 
-  const [firstNameError, setFirstNameError] = useState("");
-  const [lastNameError, setLastNameError] = useState("");
-  const [emailError, setEmailError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-  const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const emailValid = /\S+@\S+\.\S+/.test(email);
+  const pwValid = password.length >= 8;
+  const match = password === confirm;
+  const valid = emailValid && pwValid && match;
 
-  const dispatch = useDispatch<AppDispatch>();
-  const { isLoading, error } = useSelector((state: RootState) => state.auth);
-
-  const validateForm = () => {
-    let isValid = true;
-
-    // First name validation
-    if (!firstName.trim()) {
-      setFirstNameError("First name is required");
-      isValid = false;
-    } else {
-      setFirstNameError("");
-    }
-
-    // Last name validation
-    if (!lastName.trim()) {
-      setLastNameError("Last name is required");
-      isValid = false;
-    } else {
-      setLastNameError("");
-    }
-
-    // Email validation
-    if (!email) {
-      setEmailError("Email is required");
-      isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      setEmailError("Email is invalid");
-      isValid = false;
-    } else {
-      setEmailError("");
-    }
-
-    // Password validation
-    if (!password) {
-      setPasswordError("Password is required");
-      isValid = false;
-    } else if (password.length < 8) {
-      setPasswordError("Password must be at least 8 characters");
-      isValid = false;
-    } else {
-      setPasswordError("");
-    }
-
-    // Confirm password validation
-    if (!confirmPassword) {
-      setConfirmPasswordError("Please confirm your password");
-      isValid = false;
-    } else if (password !== confirmPassword) {
-      setConfirmPasswordError("Passwords do not match");
-      isValid = false;
-    } else {
-      setConfirmPasswordError("");
-    }
-
-    return isValid;
-  };
-
-  const handleRegister = async () => {
-    if (validateForm()) {
-      try {
-        await dispatch(
-          register({ email, password, firstName, lastName }),
-        ).unwrap();
-        Alert.alert(
-          "Registration Successful",
-          "Your account has been created. Please check your email for verification.",
-          [{ text: "OK", onPress: () => navigation.navigate("Login") }],
-        );
-      } catch (err: any) {
-        Alert.alert("Registration Failed", err.toString());
-      }
-    }
+  const onSubmit = async () => {
+    setTouched(true);
+    if (!valid) return;
+    dispatch(clearError());
+    const [firstName, ...rest] = name.trim().split(/\s+/);
+    dispatch(
+      register({
+        email: email.trim(),
+        password,
+        firstName: firstName || name.trim(),
+        lastName: rest.join(" "),
+      }) as never,
+    );
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.formContainer}>
-        <Text style={styles.title}>Create Account</Text>
-        <Text style={styles.subtitle}>
-          Join FinFlow to manage your finances
-        </Text>
-
-        {error && <Text style={styles.errorText}>{error}</Text>}
-
-        <InputField
-          label="First Name"
-          placeholder="Enter your first name"
-          value={firstName}
-          onChangeText={setFirstName}
-          error={firstNameError}
-          required
-        />
-
-        <InputField
-          label="Last Name"
-          placeholder="Enter your last name"
-          value={lastName}
-          onChangeText={setLastName}
-          error={lastNameError}
-          required
-        />
-
-        <InputField
-          label="Email"
-          placeholder="Enter your email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          error={emailError}
-          required
-        />
-
-        <InputField
-          label="Password"
-          placeholder="Create a password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          error={passwordError}
-          required
-        />
-
-        <InputField
-          label="Confirm Password"
-          placeholder="Confirm your password"
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          secureTextEntry
-          error={confirmPasswordError}
-          required
-        />
-
-        <Button
-          testID="register-submit-button"
-          title="Create Account"
-          onPress={handleRegister}
-          loading={isLoading}
-          fullWidth
-          style={styles.registerButton}
-        />
-
-        <View style={styles.loginContainer}>
-          <Text style={styles.loginText}>Already have an account? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-            <Text style={styles.loginLink}>Sign in</Text>
-          </TouchableOpacity>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+    >
+      <ScrollView
+        contentContainerStyle={[
+          styles.inner,
+          { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 },
+        ]}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Logo size={30} />
+        <View style={styles.head}>
+          <Text
+            variant="headlineMedium"
+            style={[styles.title, { color: theme.colors.onBackground }]}
+          >
+            Create your account
+          </Text>
+          <Text
+            variant="bodyMedium"
+            style={{ color: theme.colors.onSurfaceVariant }}
+          >
+            Start managing your finances in minutes.
+          </Text>
         </View>
-      </View>
-    </ScrollView>
+
+        {error ? (
+          <HelperText type="error" visible>
+            {String(error)}
+          </HelperText>
+        ) : null}
+
+        <View style={styles.form}>
+          <TextInput
+            mode="outlined"
+            label="Full name"
+            value={name}
+            onChangeText={setName}
+            left={<TextInput.Icon icon="account-outline" />}
+          />
+          <TextInput
+            mode="outlined"
+            label="Work email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            left={<TextInput.Icon icon="email-outline" />}
+            error={touched && !emailValid}
+          />
+          <TextInput
+            mode="outlined"
+            label="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!show}
+            autoCapitalize="none"
+            left={<TextInput.Icon icon="lock-outline" />}
+            right={
+              <TextInput.Icon
+                icon={show ? "eye-off" : "eye"}
+                onPress={() => setShow((s) => !s)}
+              />
+            }
+            error={touched && password.length > 0 && !pwValid}
+          />
+          {touched && password.length > 0 && !pwValid ? (
+            <HelperText type="error" visible>
+              Use at least 8 characters.
+            </HelperText>
+          ) : null}
+          <TextInput
+            mode="outlined"
+            label="Confirm password"
+            value={confirm}
+            onChangeText={setConfirm}
+            secureTextEntry={!show}
+            autoCapitalize="none"
+            left={<TextInput.Icon icon="lock-check-outline" />}
+            error={touched && !match}
+          />
+          {touched && confirm.length > 0 && !match ? (
+            <HelperText type="error" visible>
+              Passwords do not match.
+            </HelperText>
+          ) : null}
+          <Button
+            mode="contained"
+            onPress={onSubmit}
+            loading={isLoading}
+            disabled={isLoading}
+            contentStyle={styles.btn}
+            style={{ marginTop: 4 }}
+          >
+            Create account
+          </Button>
+        </View>
+
+        <View style={styles.footer}>
+          <Text
+            variant="bodyMedium"
+            style={{ color: theme.colors.onSurfaceVariant }}
+          >
+            Already have an account?{" "}
+          </Text>
+          <Button
+            mode="text"
+            compact
+            onPress={() => navigation.navigate("Login")}
+            labelStyle={{ fontSize: 14 }}
+          >
+            Sign in
+          </Button>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    backgroundColor: "#f9f9f9",
-    padding: 20,
-  },
-  formContainer: {
-    backgroundColor: "#ffffff",
-    borderRadius: 10,
-    padding: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    marginVertical: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#3498db",
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#7f8c8d",
-    textAlign: "center",
-    marginBottom: 24,
-  },
-  errorText: {
-    color: "#e74c3c",
-    textAlign: "center",
-    marginBottom: 16,
-    padding: 10,
-    backgroundColor: "#fadbd8",
-    borderRadius: 4,
-  },
-  registerButton: {
-    marginTop: 8,
-    marginBottom: 16,
-  },
-  loginContainer: {
+  inner: { paddingHorizontal: 24, gap: 18 },
+  head: { gap: 6 },
+  title: { fontWeight: "800" },
+  form: { gap: 12 },
+  btn: { paddingVertical: 6 },
+  footer: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "center",
-    marginTop: 16,
-  },
-  loginText: {
-    color: "#7f8c8d",
-    fontSize: 14,
-  },
-  loginLink: {
-    color: "#3498db",
-    fontSize: 14,
-    fontWeight: "600",
+    marginTop: 4,
   },
 });
 

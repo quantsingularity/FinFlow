@@ -222,3 +222,16 @@ export const creditApi = {
   makePayment: (loanId: string, amount: number) =>
     apiService.post(`/api/credit/loans/${loanId}/payments`, { amount }),
 };
+
+export const invoicesApi = {
+  getInvoices: (params?: any) =>
+    apiService.get("/api/accounting/invoices", params),
+
+  getInvoice: (id: string) => apiService.get(`/api/accounting/invoices/${id}`),
+
+  createInvoice: (invoiceData: any) =>
+    apiService.post("/api/accounting/invoices", invoiceData),
+
+  updateInvoice: (id: string, data: any) =>
+    apiService.put(`/api/accounting/invoices/${id}`, data),
+};

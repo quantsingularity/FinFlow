@@ -2,18 +2,17 @@ import { NavigationContainer } from "@react-navigation/native";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import axios from "axios";
 import { Provider } from "react-redux";
+import { PaperProvider } from "react-native-paper";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import LoginScreen from "../../screens/auth/LoginScreen";
 import { store } from "../../store";
+import { lightTheme } from "../../theme";
 
-// Provide a complete axios mock at load time. api.ts instantiates a singleton
-// at import (registering interceptors), which runs before beforeEach, so the
-// mocked axios.create must already return an object exposing interceptors.
+// api.ts builds an axios singleton at import (registering interceptors), so the
+// mocked axios.create must already expose interceptors.
 jest.mock("axios", () => {
   const mAxios: any = {
-    interceptors: {
-      request: { use: jest.fn() },
-      response: { use: jest.fn() },
-    },
+    interceptors: { request: { use: jest.fn() }, response: { use: jest.fn() } },
     get: jest.fn(),
     post: jest.fn(),
     put: jest.fn(),
@@ -26,91 +25,57 @@ jest.mock("axios", () => {
 });
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
-describe("Login Integration Test", () => {
+const metrics = {
+  frame: { x: 0, y: 0, width: 390, height: 844 },
+  insets: { top: 47, left: 0, right: 0, bottom: 34 },
+};
+
+function renderLogin(navigation: any) {
+  return render(
+    <Provider store={store}>
+      <SafeAreaProvider initialMetrics={metrics}>
+        <PaperProvider theme={lightTheme}>
+          <NavigationContainer>
+            <LoginScreen navigation={navigation} />
+          </NavigationContainer>
+        </PaperProvider>
+      </SafeAreaProvider>
+    </Provider>,
+  );
+}
+
+describe("Login integration", () => {
   let navigation: any;
-
   beforeEach(() => {
-    navigation = {
-      navigate: jest.fn(),
-    };
+    navigation = { navigate: jest.fn() };
   });
+  afterEach(() => jest.clearAllMocks());
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it("successfully logs in with valid credentials", async () => {
-    const mockResponse = {
+  it("dispatches a login request with valid credentials", async () => {
+    mockedAxios.request.mockResolvedValueOnce({
       data: {
         token: "mock-token",
-        user: {
-          id: "1",
-          email: "test@example.com",
-          firstName: "John",
-          lastName: "Doe",
-          role: "user",
-          createdAt: "2024-01-01",
-          updatedAt: "2024-01-01",
-        },
+        user: { id: "1", email: "test@example.com", role: "user" },
       },
       status: 200,
       statusText: "OK",
-    };
-
-    mockedAxios.request.mockResolvedValueOnce(mockResponse);
-
-    const { getByPlaceholderText, getByText } = render(
-      <Provider store={store}>
-        <NavigationContainer>
-          <LoginScreen navigation={navigation} />
-        </NavigationContainer>
-      </Provider>,
-    );
-
-    const emailInput = getByPlaceholderText("Enter your email");
-    const passwordInput = getByPlaceholderText("Enter your password");
-    const loginButton = getByText("Sign In");
-
-    fireEvent.changeText(emailInput, "test@example.com");
-    fireEvent.changeText(passwordInput, "password123");
-    fireEvent.press(loginButton);
-
-    await waitFor(() => {
-      expect(mockedAxios.request).toHaveBeenCalled();
     });
+    const { getByTestId, getByText } = renderLogin(navigation);
+    fireEvent.changeText(getByTestId("email-input"), "test@example.com");
+    fireEvent.changeText(getByTestId("password-input"), "password123");
+    fireEvent.press(getByText("Sign in"));
+    await waitFor(() => expect(mockedAxios.request).toHaveBeenCalled());
   });
 
-  it("shows error message with invalid credentials", async () => {
-    const mockError = {
-      response: {
-        data: {
-          message: "Invalid credentials",
-        },
-        status: 401,
-      },
+  it("handles invalid credentials without crashing", async () => {
+    mockedAxios.request.mockRejectedValueOnce({
+      response: { data: { message: "Invalid credentials" }, status: 401 },
       message: "Invalid credentials",
-    };
-
-    mockedAxios.request.mockRejectedValueOnce(mockError);
-
-    const { getByPlaceholderText, getByText } = render(
-      <Provider store={store}>
-        <NavigationContainer>
-          <LoginScreen navigation={navigation} />
-        </NavigationContainer>
-      </Provider>,
-    );
-
-    const emailInput = getByPlaceholderText("Enter your email");
-    const passwordInput = getByPlaceholderText("Enter your password");
-    const loginButton = getByText("Sign In");
-
-    fireEvent.changeText(emailInput, "test@example.com");
-    fireEvent.changeText(passwordInput, "wrongpassword");
-    fireEvent.press(loginButton);
-
-    await waitFor(() => {
-      expect(mockedAxios.request).toHaveBeenCalled();
     });
+    const { getByTestId, getByText } = renderLogin(navigation);
+    fireEvent.changeText(getByTestId("email-input"), "test@example.com");
+    fireEvent.changeText(getByTestId("password-input"), "wrongpassword");
+    fireEvent.press(getByText("Sign in"));
+    await waitFor(() => expect(mockedAxios.request).toHaveBeenCalled());
   });
 });

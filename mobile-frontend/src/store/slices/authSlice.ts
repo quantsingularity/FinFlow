@@ -24,10 +24,15 @@ export const login = createAsyncThunk(
   ) => {
     try {
       const response = await authApi.login(email, password);
-      // Store token and user in AsyncStorage
-      await AsyncStorage.setItem("auth_token", response.data.token);
-      await AsyncStorage.setItem("user", JSON.stringify(response.data.user));
-      return response.data;
+      // Backend shape: { success, data: { user, tokens: { accessToken, refreshToken } } }
+      const body: any = response.data;
+      const payload = body?.data ?? body;
+      const token: string =
+        payload?.tokens?.accessToken ?? payload?.token ?? "";
+      const user = payload?.user ?? payload;
+      await AsyncStorage.setItem("auth_token", token);
+      await AsyncStorage.setItem("user", JSON.stringify(user));
+      return { token, user };
     } catch (error: any) {
       return rejectWithValue(error.message || "Login failed");
     }
@@ -52,7 +57,17 @@ export const register = createAsyncThunk(
         firstName,
         lastName,
       );
-      return response.data;
+      // Backend returns tokens on register too; auto-sign-in the new user.
+      const body: any = response.data;
+      const payload = body?.data ?? body;
+      const token: string =
+        payload?.tokens?.accessToken ?? payload?.token ?? "";
+      const user = payload?.user ?? payload;
+      if (token) {
+        await AsyncStorage.setItem("auth_token", token);
+        await AsyncStorage.setItem("user", JSON.stringify(user));
+      }
+      return { token, user };
     } catch (error: any) {
       return rejectWithValue(error.message || "Registration failed");
     }
@@ -144,9 +159,16 @@ const authSlice = createSlice({
       state.isLoading = true;
       state.error = null;
     });
-    builder.addCase(register.fulfilled, (state) => {
-      state.isLoading = false;
-    });
+    builder.addCase(
+      register.fulfilled,
+      (state, action: PayloadAction<{ token: string; user: User }>) => {
+        state.isLoading = false;
+        if (action.payload?.token) {
+          state.token = action.payload.token;
+          state.user = action.payload.user;
+        }
+      },
+    );
     builder.addCase(register.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload as string;

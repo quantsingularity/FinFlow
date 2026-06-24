@@ -49,14 +49,14 @@ describe("paymentService", () => {
     expect(result).toEqual(payment);
   });
 
-  test("createPayment posts to the charge endpoint", async () => {
+  test("createPayment posts to the payments endpoint", async () => {
     const input = { userId: "user-1", amount: 100, currency: "USD" };
     const created = { id: "pay-new", status: "PENDING", ...input };
     mockedApi.post.mockResolvedValue({ data: created });
 
     const result = await createPayment(input as never);
 
-    expect(mockedApi.post).toHaveBeenCalledWith("/payments/charge", input);
+    expect(mockedApi.post).toHaveBeenCalledWith("/payments", input);
     expect(result).toEqual(created);
   });
 

@@ -22,7 +22,7 @@ export const createPayment = async (
     | "updatedAt"
   >,
 ): Promise<Payment> => {
-  const response = await api.post("/payments/charge", paymentData);
+  const response = await api.post("/payments", paymentData);
   return response.data;
 };
 

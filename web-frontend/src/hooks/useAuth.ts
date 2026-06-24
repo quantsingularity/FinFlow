@@ -22,7 +22,9 @@ interface AuthResult {
 
 // Normalize varying backend auth payloads into { token, user }.
 function normalize(data: Record<string, unknown>): AuthResult {
-  const token = (data.token ||
+  const tokens = (data.tokens ?? {}) as Record<string, unknown>;
+  const token = (tokens.accessToken ||
+    data.token ||
     data.accessToken ||
     data.access_token ||
     "") as string;
@@ -49,6 +51,7 @@ export function useAuth() {
         const { token, user } = normalize(data);
         if (!token) throw new Error("No session token returned by the server.");
         dispatch(loginSuccess({ token, user }));
+        localStorage.setItem("user", JSON.stringify(user));
         return true;
       } catch (err) {
         dispatch(
@@ -67,7 +70,10 @@ export function useAuth() {
         const data = await authService.register(email, password);
         const { token, user } = normalize(data);
         dispatch(registerSuccess());
-        if (token) dispatch(loginSuccess({ token, user }));
+        if (token) {
+          dispatch(loginSuccess({ token, user }));
+          localStorage.setItem("user", JSON.stringify(user));
+        }
         return true;
       } catch (err) {
         dispatch(

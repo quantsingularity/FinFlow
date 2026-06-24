@@ -1,184 +1,158 @@
-import type React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
+import { View, StyleSheet, KeyboardAvoidingView, Platform } from "react-native";
 import {
-  Alert,
-  ScrollView,
-  StyleSheet,
   Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+  TextInput,
+  Button,
+  HelperText,
+  useTheme,
+} from "react-native-paper";
 import { useDispatch, useSelector } from "react-redux";
-import Button from "../../components/common/Button";
-import InputField from "../../components/common/InputField";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Logo } from "../../components/common/Logo";
 import type { AppDispatch, RootState } from "../../store";
-import { login } from "../../store/slices/authSlice";
+import { login, clearError } from "../../store/slices/authSlice";
+import type { AppTheme } from "../../theme";
 
 const LoginScreen: React.FC<any> = ({ navigation }: any) => {
+  const theme = useTheme<AppTheme>();
+  const insets = useSafeAreaInsets();
+  const dispatch = useDispatch<AppDispatch>();
+  const { isLoading, error } = useSelector((s: RootState) => s.auth);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [emailError, setEmailError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
+  const [show, setShow] = useState(false);
+  const [touched, setTouched] = useState(false);
 
-  const dispatch = useDispatch<AppDispatch>();
-  const { isLoading, error } = useSelector((state: RootState) => state.auth);
+  const emailValid = /\S+@\S+\.\S+/.test(email);
+  const valid = emailValid && password.length >= 6;
 
-  const validateForm = () => {
-    let isValid = true;
-
-    // Email validation
-    if (!email) {
-      setEmailError("Email is required");
-      isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      setEmailError("Email is invalid");
-      isValid = false;
-    } else {
-      setEmailError("");
-    }
-
-    // Password validation
-    if (!password) {
-      setPasswordError("Password is required");
-      isValid = false;
-    } else if (password.length < 6) {
-      setPasswordError("Password must be at least 6 characters");
-      isValid = false;
-    } else {
-      setPasswordError("");
-    }
-
-    return isValid;
-  };
-
-  const handleLogin = async () => {
-    if (validateForm()) {
-      try {
-        await dispatch(login({ email, password })).unwrap();
-      } catch (err: any) {
-        Alert.alert("Login Failed", err.toString());
-      }
-    }
+  const onSubmit = async () => {
+    setTouched(true);
+    if (!valid) return;
+    dispatch(clearError());
+    dispatch(login({ email: email.trim(), password }) as never);
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.formContainer}>
-        <Text style={styles.title}>FinFlow</Text>
-        <Text style={styles.subtitle}>Sign in to your account</Text>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      style={[
+        styles.root,
+        {
+          backgroundColor: theme.colors.background,
+          paddingTop: insets.top + 16,
+        },
+      ]}
+    >
+      <View style={styles.inner}>
+        <Logo size={30} />
+        <View style={styles.head}>
+          <Text
+            variant="headlineMedium"
+            style={[styles.title, { color: theme.colors.onBackground }]}
+          >
+            Welcome back
+          </Text>
+          <Text
+            variant="bodyMedium"
+            style={{ color: theme.colors.onSurfaceVariant }}
+          >
+            Sign in to your FinFlow account to continue.
+          </Text>
+        </View>
 
-        {error && <Text style={styles.errorText}>{error}</Text>}
+        {error ? (
+          <HelperText type="error" visible style={styles.banner}>
+            {String(error)}
+          </HelperText>
+        ) : null}
 
-        <InputField
-          label="Email"
-          placeholder="Enter your email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          error={emailError}
-          required
-        />
+        <View style={styles.form}>
+          <TextInput
+            mode="outlined"
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+            testID="email-input"
+            left={<TextInput.Icon icon="email-outline" />}
+            error={touched && !emailValid}
+          />
+          <TextInput
+            mode="outlined"
+            label="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!show}
+            autoCapitalize="none"
+            left={<TextInput.Icon icon="lock-outline" />}
+            testID="password-input"
+            right={
+              <TextInput.Icon
+                icon={show ? "eye-off" : "eye"}
+                onPress={() => setShow((s) => !s)}
+              />
+            }
+            error={touched && password.length > 0 && password.length < 6}
+          />
+          <Button
+            mode="text"
+            compact
+            onPress={() => navigation.navigate("ForgotPassword")}
+            style={styles.forgot}
+            labelStyle={{ fontSize: 13 }}
+          >
+            Forgot password?
+          </Button>
+          <Button
+            mode="contained"
+            onPress={onSubmit}
+            loading={isLoading}
+            disabled={isLoading}
+            contentStyle={styles.btn}
+          >
+            Sign in
+          </Button>
+        </View>
 
-        <InputField
-          label="Password"
-          placeholder="Enter your password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          error={passwordError}
-          required
-        />
-
-        <TouchableOpacity
-          onPress={() => navigation.navigate("ForgotPassword")}
-          style={styles.forgotPasswordContainer}
-        >
-          <Text style={styles.forgotPasswordText}>Forgot password?</Text>
-        </TouchableOpacity>
-
-        <Button
-          testID="login-submit-button"
-          title="Sign In"
-          onPress={handleLogin}
-          loading={isLoading}
-          fullWidth
-          style={styles.loginButton}
-        />
-
-        <View style={styles.registerContainer}>
-          <Text style={styles.registerText}>Don't have an account? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-            <Text style={styles.registerLink}>Sign up</Text>
-          </TouchableOpacity>
+        <View style={styles.footer}>
+          <Text
+            variant="bodyMedium"
+            style={{ color: theme.colors.onSurfaceVariant }}
+          >
+            New to FinFlow?{" "}
+          </Text>
+          <Button
+            mode="text"
+            compact
+            onPress={() => navigation.navigate("Register")}
+            labelStyle={{ fontSize: 14 }}
+          >
+            Create an account
+          </Button>
         </View>
       </View>
-    </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    backgroundColor: "#f9f9f9",
-    justifyContent: "center",
-    padding: 20,
-  },
-  formContainer: {
-    backgroundColor: "#ffffff",
-    borderRadius: 10,
-    padding: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#3498db",
-    textAlign: "center",
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#7f8c8d",
-    textAlign: "center",
-    marginBottom: 24,
-  },
-  errorText: {
-    color: "#e74c3c",
-    textAlign: "center",
-    marginBottom: 16,
-    padding: 10,
-    backgroundColor: "#fadbd8",
-    borderRadius: 4,
-  },
-  forgotPasswordContainer: {
-    alignSelf: "flex-end",
-    marginBottom: 24,
-  },
-  forgotPasswordText: {
-    color: "#3498db",
-    fontSize: 14,
-  },
-  loginButton: {
-    marginBottom: 16,
-  },
-  registerContainer: {
+  root: { flex: 1, paddingHorizontal: 24 },
+  inner: { flex: 1, justifyContent: "center", gap: 20 },
+  head: { gap: 6 },
+  title: { fontWeight: "800" },
+  banner: { backgroundColor: "transparent" },
+  form: { gap: 12 },
+  forgot: { alignSelf: "flex-end", marginTop: -4 },
+  btn: { paddingVertical: 6 },
+  footer: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "center",
-    marginTop: 16,
-  },
-  registerText: {
-    color: "#7f8c8d",
-    fontSize: 14,
-  },
-  registerLink: {
-    color: "#3498db",
-    fontSize: 14,
-    fontWeight: "600",
   },
 });
 

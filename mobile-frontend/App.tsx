@@ -1,30 +1,32 @@
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import { StyleSheet } from "react-native";
+import { useColorScheme } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { PaperProvider } from "react-native-paper";
 import { Provider, useDispatch } from "react-redux";
 import { AppNavigator } from "./src/navigation/AppNavigator";
 import { store } from "./src/store";
 import { checkAuth } from "./src/store/slices/authSlice";
+import { lightTheme, darkTheme } from "./src/theme";
 
-// App content with auth check
 function AppContent() {
   const dispatch = useDispatch();
+  const scheme = useColorScheme();
+  const theme = scheme === "dark" ? darkTheme : lightTheme;
 
   useEffect(() => {
-    // Check for stored authentication on app startup
-    dispatch(checkAuth() as any);
+    // Restore any stored session on startup.
+    dispatch(checkAuth() as never);
   }, [dispatch]);
 
   return (
-    <>
-      <StatusBar style="auto" />
-      <AppNavigator />
-    </>
+    <PaperProvider theme={theme}>
+      <StatusBar style={scheme === "dark" ? "light" : "dark"} />
+      <AppNavigator isDark={scheme === "dark"} />
+    </PaperProvider>
   );
 }
 
-// Root app component
 export default function App() {
   return (
     <Provider store={store}>
@@ -34,10 +36,3 @@ export default function App() {
     </Provider>
   );
 }
-
-const _styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-});

@@ -19,18 +19,13 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Switch } from "../components/ui/switch";
 import { Badge } from "../components/ui/badge";
-import { Separator } from "../components/ui/separator";
 import { useAuth } from "../hooks/useAuth";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { toggleDarkMode } from "../store/uiSlice";
 import api from "../services/api";
 import { getErrorMessage } from "../lib/errors";
 import { toast } from "sonner";
 
 export default function Settings() {
   const { user } = useAuth();
-  const dispatch = useAppDispatch();
-  const dark = useAppSelector((s) => s.ui.darkMode);
   const [name, setName] = useState(user?.email?.split("@")[0] ?? "");
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [pwd, setPwd] = useState({ current: "", next: "", confirm: "" });
@@ -158,19 +153,6 @@ export default function Settings() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-1">
-              <div className="flex items-center justify-between py-3">
-                <div>
-                  <p className="text-sm font-medium">Dark mode</p>
-                  <p className="text-sm text-muted-foreground">
-                    Switch between light and dark themes.
-                  </p>
-                </div>
-                <Switch
-                  checked={dark}
-                  onCheckedChange={() => dispatch(toggleDarkMode())}
-                />
-              </div>
-              <Separator />
               <div className="flex items-center justify-between py-3">
                 <div>
                   <p className="text-sm font-medium">Email notifications</p>

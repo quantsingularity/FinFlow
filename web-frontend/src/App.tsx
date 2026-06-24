@@ -57,10 +57,9 @@ function PublicOnly({ children }: { children: React.ReactNode }) {
 
 function Bootstrap() {
   const dispatch = useAppDispatch();
-  const { token, user, darkMode } = useAppSelector((s) => ({
+  const { token, user } = useAppSelector((s) => ({
     token: s.auth.token,
     user: s.auth.user,
-    darkMode: s.ui.darkMode,
   }));
 
   // Restore the session: if a token exists but we have no user yet, fetch it.
@@ -72,11 +71,6 @@ function Bootstrap() {
         .catch(() => dispatch(logout()));
     }
   }, [token, user, dispatch]);
-
-  // Apply the theme.
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", darkMode);
-  }, [darkMode]);
 
   return null;
 }
