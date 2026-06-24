@@ -1,39 +1,26 @@
-import { motion } from "framer-motion";
-import { FileQuestion } from "lucide-react";
-import type React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
+import { Logo } from "../components/brand/Logo";
 
-const NotFound: React.FC = () => {
+export default function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="text-center max-w-md"
-      >
-        <FileQuestion className="h-24 w-24 text-gray-400 mx-auto mb-6" />
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-          404
-        </h1>
-        <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
-          Page Not Found
-        </h2>
-        <p className="text-gray-600 dark:text-gray-400 mb-8">
-          The page you are looking for doesn't exist or has been moved.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button asChild variant="primary" size="lg">
-            <Link to="/">Go to Dashboard</Link>
-          </Button>
-          <Button asChild variant="outline" size="lg">
-            <Link to="/login">Sign In</Link>
-          </Button>
-        </div>
-      </motion.div>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 text-center">
+      <Logo />
+      <p className="mt-8 font-display text-6xl font-bold tracking-tight text-primary">
+        404
+      </p>
+      <h1 className="mt-2 font-display text-2xl font-bold">Page not found</h1>
+      <p className="mt-2 max-w-sm text-muted-foreground">
+        The page you’re looking for doesn’t exist or may have moved.
+      </p>
+      <div className="mt-6 flex gap-3">
+        <Button asChild>
+          <Link to="/">Back home</Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link to="/dashboard">Go to dashboard</Link>
+        </Button>
+      </div>
     </div>
   );
-};
-
-export default NotFound;
+}

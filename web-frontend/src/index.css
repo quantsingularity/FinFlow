@@ -1,26 +1,154 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 @layer base {
   :root {
-    --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-  .dark {
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --radius: 0.75rem;
+
+    /* Neutrals + surfaces */
+    --background: 240 30% 99%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Brand */
+    --primary: 243 75% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 16% 96%;
+    --secondary-foreground: 222 40% 18%;
+    --muted: 240 16% 96%;
+    --muted-foreground: 240 5% 45%;
+    --accent: 243 70% 96%;
+    --accent-foreground: 243 60% 32%;
+
+    /* Semantic */
+    --destructive: 352 78% 52%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 160 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 36 92% 48%;
+    --warning-foreground: 36 100% 12%;
+    --info: 217 91% 58%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 240 14% 91%;
+    --input: 240 14% 89%;
+    --ring: 243 75% 58%;
+
+    --chart-1: 243 75% 58%;
+    --chart-2: 160 76% 40%;
+    --chart-3: 199 89% 48%;
+    --chart-4: 36 92% 52%;
+    --chart-5: 280 65% 60%;
+
+    --sidebar-background: 224 48% 9%;
+    --sidebar-foreground: 240 20% 88%;
+    --sidebar-primary: 243 75% 64%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 224 36% 16%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 224 30% 18%;
+    --sidebar-ring: 243 75% 64%;
+  }
+
+  .dark {
+    --background: 224 47% 6%;
+    --foreground: 240 20% 96%;
+    --card: 224 40% 9%;
+    --card-foreground: 240 20% 96%;
+    --popover: 224 44% 8%;
+    --popover-foreground: 240 20% 96%;
+
+    --primary: 243 78% 68%;
+    --primary-foreground: 224 47% 6%;
+    --secondary: 224 30% 15%;
+    --secondary-foreground: 240 20% 92%;
+    --muted: 224 28% 14%;
+    --muted-foreground: 240 8% 62%;
+    --accent: 224 32% 17%;
+    --accent-foreground: 240 20% 96%;
+
+    --destructive: 352 70% 56%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 160 64% 44%;
+    --success-foreground: 224 47% 6%;
+    --warning: 36 92% 56%;
+    --warning-foreground: 36 100% 10%;
+    --info: 217 91% 64%;
+    --info-foreground: 224 47% 6%;
+
+    --border: 224 26% 18%;
+    --input: 224 26% 20%;
+    --ring: 243 78% 68%;
+
+    --chart-1: 243 78% 68%;
+    --chart-2: 160 64% 48%;
+    --chart-3: 199 89% 58%;
+    --chart-4: 36 92% 60%;
+    --chart-5: 280 70% 70%;
+
+    --sidebar-background: 224 50% 5%;
+    --sidebar-foreground: 240 20% 86%;
+    --sidebar-primary: 243 78% 70%;
+    --sidebar-primary-foreground: 224 47% 6%;
+    --sidebar-accent: 224 34% 13%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 224 30% 14%;
+    --sidebar-ring: 243 78% 70%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv11", "ss01";
+    font-variation-settings: normal;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    @apply font-display tracking-tight;
+  }
+  /* Tabular, monospaced figures for money and metrics: the signature treatment */
+  .tabular {
+    font-family: theme("fontFamily.mono");
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, hsl(var(--border) / 0.6) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--border) / 0.6) 1px, transparent 1px);
+    background-size: 56px 56px;
+  }
+  .bg-radial-fade {
+    background: radial-gradient(
+      60% 60% at 50% 0%,
+      hsl(var(--primary) / 0.1),
+      transparent 70%
+    );
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
   }
 }

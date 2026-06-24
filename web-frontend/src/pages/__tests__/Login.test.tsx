@@ -3,16 +3,12 @@ import { describe, expect, test } from "vitest";
 import { renderWithProviders } from "../../test-utils";
 import Login from "../Login";
 
-// NOTE: These are smoke tests against the current Login page. The original
-// suite asserted OAuth login, validation messages, and a successful-login
-// redirect, but the page's submit handler is currently a stub that does not
-// call the auth service, and the social-login buttons are placeholders with
-// no handler. See FIXES.md. Detailed behavioral tests should be restored once
-// the page logic is implemented.
 describe("Login page", () => {
-  test("renders the login form", () => {
+  test("renders the login form heading and subtext", () => {
     renderWithProviders(<Login />);
-    expect(screen.getByText(/welcome back/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /welcome back/i }),
+    ).toBeInTheDocument();
     expect(
       screen.getByText(/sign in to your finflow account/i),
     ).toBeInTheDocument();
@@ -23,13 +19,19 @@ describe("Login page", () => {
     expect(
       screen.getByPlaceholderText(/name@example.com/i),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(screen.getByLabelText("Password")).toBeInTheDocument();
   });
 
-  test("renders a submit button", () => {
+  test("renders a sign-in button and links to register and reset", () => {
     renderWithProviders(<Login />);
     expect(
       screen.getByRole("button", { name: /sign in/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /create an account/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /forgot password/i }),
     ).toBeInTheDocument();
   });
 });

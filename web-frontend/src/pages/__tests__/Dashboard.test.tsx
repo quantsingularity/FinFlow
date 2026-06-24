@@ -3,21 +3,19 @@ import { describe, expect, test } from "vitest";
 import { renderWithProviders } from "../../test-utils";
 import Dashboard from "../Dashboard";
 
-// NOTE: Smoke tests against the current Dashboard. The original suite asserted
-// loading spinners, error states, KPI navigation, and transaction filtering,
-// and rendered without a QueryClientProvider (the page uses TanStack Query),
-// so every case errored. The page currently reads data via useQuery with
-// sample fallbacks. See FIXES.md.
+// Smoke tests: the Dashboard reads data via TanStack Query and renders KPIs,
+// a revenue chart, and recent activity with loading/empty/error states.
 describe("Dashboard page", () => {
-  test("renders the dashboard heading", () => {
+  test("renders the welcome heading", () => {
     renderWithProviders(<Dashboard />);
     expect(
-      screen.getByRole("heading", { name: /financial dashboard/i }),
+      screen.getByRole("heading", { name: /welcome back/i }),
     ).toBeInTheDocument();
   });
 
-  test("renders the welcome message", () => {
+  test("renders the primary stat cards", () => {
     renderWithProviders(<Dashboard />);
-    expect(screen.getByText(/welcome back, admin/i)).toBeInTheDocument();
+    expect(screen.getByText(/revenue \(settled\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/outstanding/i)).toBeInTheDocument();
   });
 });
