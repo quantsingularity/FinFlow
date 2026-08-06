@@ -81,8 +81,9 @@ start_service() {
         cd "$dir" || exit 1
         export PORT="$port" SERVICE_NAME="$name" SERVICE_PORT="$port"
         if [ "$runtime" = "node" ]; then
-            if [ ! -d node_modules ]; then
-                echo "node_modules missing in $dir - run: npm install" >&2
+            if [ ! -d node_modules ] && [ ! -d "$ROOT_DIR/node_modules" ]; then
+                echo "node_modules missing. Run 'npm install' from $ROOT_DIR or $dir." >&2
+                exit 1
             fi
             if [ -f dist/server.js ]; then
                 nohup node dist/server.js > "$LOG_DIR/${name}.log" 2>&1 &

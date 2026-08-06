@@ -378,25 +378,12 @@ export interface ServiceMetrics {
 // Export utility types
 export type MetricType = "transaction" | "payment" | "user" | "system";
 export type TimeGranularity =
-  | "second"
-  | "minute"
-  | "hour"
-  | "day"
-  | "week"
-  | "month";
+  "second" | "minute" | "hour" | "day" | "week" | "month";
 export type AggregationType =
-  | "sum"
-  | "avg"
-  | "min"
-  | "max"
-  | "count"
-  | "distinct";
+  "sum" | "avg" | "min" | "max" | "count" | "distinct";
 export type AlertSeverity = "low" | "medium" | "high" | "critical";
 export type AlertStatus =
-  | "active"
-  | "investigating"
-  | "resolved"
-  | "false_positive";
+  "active" | "investigating" | "resolved" | "false_positive";
 
 // Utility interfaces
 export interface TimeRange {
