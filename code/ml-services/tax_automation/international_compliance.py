@@ -8,6 +8,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from dateutil.relativedelta import relativedelta
+
 logger = logging.getLogger(__name__)
 
 #
@@ -400,7 +402,12 @@ class KYCService:
                     "missing_documents": missing_docs,
                     "risk_factors": profile.risk_factors,
                 },
-                expires_at=datetime.now().replace(year=datetime.now().year + 1),
+                # BUG FIX: datetime.now().replace(year=...+1) raises
+                # `ValueError: day is out of range for month` whenever a KYC check
+                # is performed on Feb 29 of a leap year (there is no Feb 29 in the
+                # following, non-leap year), crashing every KYC check run on that
+                # date. relativedelta(years=1) correctly rolls Feb 29 -> Feb 28.
+                expires_at=datetime.now() + relativedelta(years=1),
             )
 
             self.db.save_compliance_check(check)
@@ -597,13 +604,19 @@ class FATCAService:
 
             is_us_person = len(us_indicators_found) > 0
 
+            # NOTE: FATCA status is intentionally always PASSED here regardless of
+            # is_us_person - this check identifies US-person status (captured in
+            # "is_us_person"/"requires_reporting" below) rather than gating
+            # pass/fail compliance. Verified against test_fatca_check, which
+            # asserts PASSED for a confirmed US person. Was previously written as
+            # a no-op ternary ("PASSED if is_us_person else PASSED"), which read
+            # like a copy-paste bug; simplified to a direct assignment with no
+            # behavior change.
             check = ComplianceCheck(
                 check_id=check_id,
                 entity_id=entity_id,
                 check_type=ComplianceCheckType.FATCA,
-                status=(
-                    ComplianceStatus.PASSED if is_us_person else ComplianceStatus.PASSED
-                ),
+                status=ComplianceStatus.PASSED,
                 risk_level=RiskLevel.MEDIUM if is_us_person else RiskLevel.LOW,
                 details={
                     "is_us_person": is_us_person,
@@ -880,7 +893,7 @@ if __name__ == "__main__":
         },
         "identification_documents": [
             {"type": "government_id", "number": "123456789", "expiry": "2030-01-01"},
-            {"type": "proof_of_address", "type": "utility_bill", "date": "2023-01-01"},
+            {"type": "proof_of_address", "document": "utility_bill", "date": "2023-01-01"},
         ],
         "business_activities": ["consulting"],
         "expected_transaction_volume": 50000.00,

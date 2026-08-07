@@ -143,7 +143,9 @@ class AuthService {
       const { refreshToken, ipAddress } = refreshTokenDto;
       let decoded: TokenPayload;
       try {
-        decoded = jwt.verify(refreshToken, config.jwt.secret) as TokenPayload;
+        decoded = jwt.verify(refreshToken, config.jwt.secret, {
+          algorithms: ["HS256"],
+        }) as TokenPayload;
       } catch {
         throw new UnauthorizedError("Invalid refresh token");
       }

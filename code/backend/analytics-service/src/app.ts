@@ -27,7 +27,9 @@ const authenticate = (
   }
   try {
     const token = authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, config.jwt.secret) as any;
+    const decoded = jwt.verify(token, config.jwt.secret, {
+      algorithms: ["HS256"],
+    }) as any;
     (req as any).user = { id: decoded.sub, role: decoded.role };
     next();
   } catch {
@@ -37,19 +39,13 @@ const authenticate = (
 
 const getAnalyticsService = () => require("./analytics.service").default;
 
-// BUG FIX: The original list duplicated every entry in both UPPER and lower case,
-// which the comment correctly says should be a "case-insensitive match" but the
-// implementation was not — it was just a naive includes() on a doubled array that
-// would still reject mixed-case inputs like "Revenue" or "CashFlow".
-// Fix: store the canonical lower-case values once and normalise input before matching.
-const VALID_FORECAST_TYPES = [
-  "revenue",
-  "expenses",
-  "cashflow",
-  "REVENUE",
-  "EXPENSES",
-  "CASHFLOW",
-];
+// BUG FIX: This previously claimed to fix case-insensitive matching but didn't
+// actually do so - it just listed each value in both cases and still called
+// `.includes(forecastType)` directly against the raw input, so a mixed-case
+// value like "Revenue" or "CashFlow" was still rejected as invalid. Genuinely
+// fixing this requires normalising the input before comparing it against a
+// single canonical (lower-case) list, as done at the call site below.
+const VALID_FORECAST_TYPES = ["revenue", "expenses", "cashflow"];
 
 // GET /api/analytics/transaction-summary
 app.get(
@@ -107,7 +103,7 @@ app.get(
       }
       if (
         !forecastType ||
-        !VALID_FORECAST_TYPES.includes(forecastType as string)
+        !VALID_FORECAST_TYPES.includes((forecastType as string).toLowerCase())
       ) {
         res.status(400).json({
           success: false,

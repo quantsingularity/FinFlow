@@ -30,7 +30,9 @@ const authenticate = (
   }
   try {
     const token = authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, config.jwt.secret) as any;
+    const decoded = jwt.verify(token, config.jwt.secret, {
+      algorithms: ["HS256"],
+    }) as any;
     (req as any).user = { id: decoded.sub, role: decoded.role };
     next();
   } catch {

@@ -483,6 +483,26 @@ class TaxRuleManager:
 
         return rule
 
+    def deactivate_tax_rule(self, rule_id: str, changed_by: str = "system") -> bool:
+        """
+        Deactivate a tax rule and invalidate the manager-level cache.
+
+        BUG FIX: Callers (e.g. the DELETE /api/tax/rules/<rule_id> endpoint in
+        tax_api_service.py) previously called self.db.deactivate_tax_rule(...)
+        directly, which deactivates the rule in SQLite but never touches
+        TaxRuleManager.cache. Since update_tax_rule() reads via the cached
+        get_tax_rule() to build its merged updates, a rule deactivated this way
+        could be served stale (still-active) from cache for up to
+        cache_ttl_seconds afterwards, and a later update_tax_rule() call could
+        silently apply on top of that stale snapshot. Routing deactivation
+        through the manager (like create_tax_rule/update_tax_rule already do)
+        keeps the cache consistent with the database.
+        """
+        if self.db.deactivate_tax_rule(rule_id, changed_by):
+            self._invalidate_cache()
+            return True
+        return False
+
     def get_applicable_rules(
         self, jurisdiction: str, tax_type: TaxType = None, as_of_date: date = None
     ) -> List[TaxRule]:

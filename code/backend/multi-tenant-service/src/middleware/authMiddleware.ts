@@ -14,6 +14,7 @@ export const authMiddleware = (
     const decoded = jwt.verify(
       header.split(" ")[1],
       process.env.JWT_SECRET || "test-jwt-secret-key-for-development",
+      { algorithms: ["HS256"] },
     ) as any;
     (req as any).user = { id: decoded.sub, role: decoded.role };
     next();

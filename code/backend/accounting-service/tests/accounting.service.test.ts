@@ -78,10 +78,19 @@ describe("AccountingService", () => {
 
       // Assert
       expect(journalEntryModel.create).toHaveBeenCalledWith(journalEntry);
+      // BUG FIX: This previously asserted that createMany() was called with the
+      // raw {debit, credit} shape unchanged. That was asserting the bug itself -
+      // the LedgerEntry Prisma model has no debit/credit columns, only a signed
+      // {amount, isCredit} pair (see ledger-entry.types.ts / schema.prisma), so
+      // accounting.service.ts now converts each {debit, credit} line into
+      // {amount, isCredit} before persisting. This asserts the corrected shape.
       expect(ledgerEntryModel.createMany).toHaveBeenCalledWith(
         expect.arrayContaining(
           ledgerEntries.map((entry) => ({
-            ...entry,
+            accountId: entry.accountId,
+            description: entry.description,
+            amount: entry.debit > 0 ? entry.debit : entry.credit,
+            isCredit: entry.debit === 0,
             journalEntryId: createdJournalEntry.id,
           })),
         ),

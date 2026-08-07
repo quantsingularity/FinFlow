@@ -368,8 +368,11 @@ def deactivate_tax_rule(rule_id):
         if rule_manager is None or tax_engine is None:
             return jsonify({"error": "Tax system not fully initialized"}), 503
 
-        # Deactivate in rule manager (and persistence layer)
-        success = rule_manager.db.deactivate_tax_rule(rule_id, "api_user")
+        # Deactivate in rule manager (and persistence layer). Routed through
+        # rule_manager (not rule_manager.db directly) so the manager's rule cache
+        # is invalidated along with the database row - see
+        # TaxRuleManager.deactivate_tax_rule for details.
+        success = rule_manager.deactivate_tax_rule(rule_id, "api_user")
         if not success:
             return (
                 jsonify(

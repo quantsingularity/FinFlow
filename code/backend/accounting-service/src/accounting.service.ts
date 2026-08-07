@@ -28,8 +28,20 @@ class AccountingService {
 
       const journalEntry = await journalEntryModel.create(journalEntryData);
 
+      // BUG FIX: The ledger entry input contract here is a {debit, credit} pair
+      // per line (the natural shape for an API caller submitting a double-entry
+      // line), but the LedgerEntry Prisma model (see ledger-entry.types.ts /
+      // schema.prisma) stores a single signed {amount, isCredit} pair instead.
+      // This previously spread the raw {accountId, debit, credit, description}
+      // straight into ledgerEntryModel.createMany() with no translation, which
+      // would have failed at the database layer (unknown "debit"/"credit"
+      // columns) or silently persisted with amount/isCredit missing. Only
+      // TypeScript's `any`-typed (unset) Prisma client masked this until now.
       const ledgerEntriesData = ledgerEntries.map((entry) => ({
-        ...entry,
+        accountId: entry.accountId,
+        description: entry.description,
+        amount: entry.debit > 0 ? entry.debit : entry.credit,
+        isCredit: entry.debit === 0,
         journalEntryId: journalEntry.id,
       }));
 

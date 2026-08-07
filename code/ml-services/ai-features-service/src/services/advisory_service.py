@@ -752,8 +752,22 @@ class AdvisoryService:
         """Generate personalized financial advice"""
         try:
             advice = []
-            avg_expense = user_profile.get("financial_data", {}).get("avg_expense", 0)
-            monthly_expenses = avg_expense * 30 / 365.25
+            # BUG FIX: This previously read the "avg_expense" field (an average
+            # *per transaction* over the trailing 12 months per the SQL query in
+            # _get_user_financial_profile) and multiplied it by 30/365.25 as if it
+            # were a *daily* figure. The fallback profile used whenever no real
+            # database is configured sets avg_expense to total_expenses/12 (an
+            # already-monthly figure), so the old conversion divided it by another
+            # ~12x, making monthly_expenses ~12x too small. That silently inflated
+            # emergency_months by ~12x (e.g. 19 months of runway looked like 234),
+            # so the "Build Emergency Fund" advice (triggered when
+            # emergency_months < 3) almost never fired for realistic profiles.
+            # total_expenses / 12 matches the monthly_savings calculation already
+            # used in _get_user_financial_profile for the same 12-month window.
+            total_expenses = user_profile.get("financial_data", {}).get(
+                "total_expenses", 0
+            )
+            monthly_expenses = total_expenses / 12
             net_worth = user_profile.get("net_worth", 0)
             emergency_months = net_worth / max(monthly_expenses, 1)
             if emergency_months < 3:

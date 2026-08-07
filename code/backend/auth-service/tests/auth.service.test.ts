@@ -452,9 +452,14 @@ describe("AuthService", () => {
       const result = await authService.refreshToken(refreshTokenDto);
 
       // Assert
+      // BUG FIX: Updated to match the security-hardening fix in
+      // auth.service.ts, which now pins jwt.verify() to `algorithms: ["HS256"]`
+      // instead of leaving the algorithm unrestricted (see the same fix in
+      // jwt.utils.ts for the full rationale).
       expect(jwt.verify).toHaveBeenCalledWith(
         refreshTokenDto.refreshToken,
         expect.any(String),
+        { algorithms: ["HS256"] },
       );
       expect(userService.findById).toHaveBeenCalledWith(userId);
       expect(jwt.sign).toHaveBeenCalledWith(

@@ -1,0 +1,253 @@
+// FinFlow shared Prisma schema
+//
+// BUG FIX: This file did not exist anywhere in the repository, even though
+// every backend service depends on "@prisma/client" and "prisma", and
+// common/database.ts (plus each service's own model layer) instantiates a
+// real `PrismaClient`. Without a schema.prisma, `prisma generate` has never
+// produced a real client - `@prisma/client`'s package ships a placeholder
+// `index.d.ts` that types `PrismaClient` as `any` and whose runtime
+// constructor throws "@prisma/client did not initialize yet. Please run
+// `prisma generate`..." the moment it's instantiated. That meant:
+//   1. Every service crashed as soon as any code path touched the database.
+//   2. Because `PrismaClient` is typed `any`, TypeScript silently accepted
+//      data-shape bugs that a real generated client would have caught at
+//      compile time (see the accompanying fixes to accounting.service.ts's
+//      debit/credit -> amount/isCredit mapping and forecast.model.ts's
+//      f.actualAmount/f.forecastedAmount typo, both of which were only
+//      possible because there was no real client to type-check against).
+//
+// Every model/field below was reconstructed from the concrete Prisma calls
+// and TypeScript interfaces already written throughout the codebase (see
+// e.g. auth-service/src/types/user.types.ts, accounting-service/src/types/
+// account.types.ts, analytics-service/src/forecast.types.ts,
+// payments-service/src/types/payment.types.ts and their corresponding
+// *.model.ts files) rather than invented from scratch. A few constraints
+// (unique indexes, cascade behavior) were not directly evidenced by any
+// query in the code and were filled in with conventional, conservative
+// choices - these are called out inline below and are worth a deliberate
+// review rather than being treated as verified fact.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// auth-service
+// ---------------------------------------------------------------------------
+
+enum OAuthProvider {
+  GOOGLE
+  GITHUB
+  MICROSOFT
+}
+
+model User {
+  id             String         @id @default(uuid())
+  email          String         @unique
+  hashedPassword String?
+  firstName      String?
+  lastName       String?
+  // Plain string (not a Prisma enum) to match role: string in user.types.ts
+  // and the ["USER", "ADMIN"] values validated in auth.validator.ts.
+  role           String         @default("USER")
+  isActive       Boolean        @default(true)
+  refreshToken   String?
+  oauthProvider  OAuthProvider?
+  oauthId        String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  preference UserPreference?
+
+  // DESIGN DECISION: not directly evidenced by a findUnique() call in the
+  // code, but a conventional and safe constraint to prevent the same
+  // third-party account from being linked to two different FinFlow users.
+  // Postgres treats multiple NULL oauthId rows as distinct, so this does not
+  // affect users who never linked an OAuth provider.
+  @@unique([oauthProvider, oauthId])
+}
+
+model UserPreference {
+  id                    String   @id @default(uuid())
+  userId                String   @unique
+  theme                 String   @default("light")
+  language              String   @default("en")
+  notificationsEnabled  Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------------------------
+// accounting-service
+// ---------------------------------------------------------------------------
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+model Account {
+  id        String      @id @default(uuid())
+  code      String      @unique
+  name      String
+  description String
+  type      AccountType
+  isActive  Boolean     @default(true)
+  // Plain nullable string, not a self-relation: no query in the codebase
+  // filters by parentAccountId, so a self-referential FK was not fabricated.
+  parentAccountId String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  ledgerEntries LedgerEntry[]
+}
+
+// Simple, single-line transaction record used by the legacy/flat
+// transaction.model.ts + transaction.types.ts (the actually-mounted code
+// path via accounting.service.ts). Distinct from the double-entry
+// JournalEntry/LedgerEntry pair below.
+model Transaction {
+  id          String   @id @default(uuid())
+  userId      String
+  amount      Float
+  category    String?
+  description String?
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model JournalEntry {
+  id            String   @id @default(uuid())
+  invoiceId     String?
+  debitAccount  String?
+  creditAccount String?
+  amount        Float?
+  date          DateTime @default(now())
+  reference     String?
+  description   String?
+  createdBy     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  ledgerEntries LedgerEntry[]
+
+  @@index([invoiceId])
+}
+
+model LedgerEntry {
+  id             String   @id @default(uuid())
+  journalEntryId String
+  accountId      String
+  amount         Float
+  isCredit       Boolean
+  description    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  journalEntry JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  account      Account      @relation(fields: [accountId], references: [id])
+
+  @@index([journalEntryId])
+  @@index([accountId])
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+model Invoice {
+  id        String        @id @default(uuid())
+  userId    String
+  client    String
+  amount    Float
+  dueDate   DateTime
+  status    InvoiceStatus @default(DRAFT)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// analytics-service
+// ---------------------------------------------------------------------------
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  parentId    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Forecast {
+  id         String   @id @default(uuid())
+  userId     String
+  month      Int
+  year       Int
+  amount     Float
+  confidence Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // findByUserIdAndPeriod() uses findFirst (not findUnique) on
+  // (userId, year, month), so a hard unique constraint isn't enforced here -
+  // that matches the code's own behavior rather than adding a stricter
+  // constraint the app was never written to expect.
+  @@index([userId, year, month])
+}
+
+// ---------------------------------------------------------------------------
+// payments-service
+// ---------------------------------------------------------------------------
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum ProcessorType {
+  stripe
+  paypal
+  square
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  userId        String
+  amount        Float
+  currency      String
+  status        PaymentStatus @default(PENDING)
+  processorId   String?
+  processorType ProcessorType
+  processorData Json
+  metadata      Json?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([processorId])
+}
