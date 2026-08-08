@@ -1,43 +1,30 @@
 import logging
 import os
+import sys
 import tempfile
 import unittest
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
 
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../src"))
+
 logger = logging.getLogger(__name__)
 
-try:
-    from tax_automation.international_compliance import (
-        ComplianceCheckType,
-        ComplianceStatus,
-        InternationalComplianceManager,
-    )
-    from tax_automation.tax_calculation_engine import (
-        CalculationMethod,
-        TaxProfile,
-        TaxRule,
-        TaxType,
-        Transaction,
-        create_sample_data,
-    )
-    from tax_automation.tax_rule_management import TaxRuleManager
-except ImportError:
-    from international_compliance import (
-        ComplianceCheckType,
-        ComplianceStatus,
-        InternationalComplianceManager,
-    )
-    from tax_calculation_engine import (
-        CalculationMethod,
-        TaxProfile,
-        TaxRule,
-        TaxType,
-        Transaction,
-        create_sample_data,
-    )
-    from tax_rule_management import TaxRuleManager
+from international_compliance import (
+    ComplianceCheckType,
+    ComplianceStatus,
+    InternationalComplianceManager,
+)
+from tax_calculation_engine import (
+    CalculationMethod,
+    TaxProfile,
+    TaxRule,
+    TaxType,
+    Transaction,
+    create_sample_data,
+)
+from tax_rule_management import TaxRuleManager
 
 
 class TestTaxCalculationEngine(unittest.TestCase):

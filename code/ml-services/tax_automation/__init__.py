@@ -11,7 +11,7 @@ for the Finflow financial platform, including:
 
 """
 
-from .tax_calculation_engine import (
+from .src.tax_calculation_engine import (
     CalculationMethod,
     TaxCalculationEngine,
     TaxCalculationResult,
@@ -21,8 +21,7 @@ from .tax_calculation_engine import (
     TaxType,
     Transaction,
 )
-
-from .tax_rule_management import SAMPLE_TAX_RULES, TaxRuleDatabase, TaxRuleManager
+from .src.tax_rule_management import SAMPLE_TAX_RULES, TaxRuleDatabase, TaxRuleManager
 
 __version__ = "1.0.0"
 __author__ = "FinFlow Team"

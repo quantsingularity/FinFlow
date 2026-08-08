@@ -19,7 +19,6 @@ import numpy as np
 import pandas as pd
 
 
-
 async def get_database():
     """Stub: replace with real async DB client."""
 

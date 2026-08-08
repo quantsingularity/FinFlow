@@ -9,10 +9,6 @@ dotenv.config();
  * Kafka Configuration
  */
 const kafkaConfig: KafkaConfig = {
-  // Falls back to SERVICE_NAME (exported per-service by start_services.sh)
-  // rather than a hardcoded service name, so every service identifies
-  // itself correctly to Kafka instead of every service reporting as
-  // "auth-service".
   clientId:
     process.env.KAFKA_CLIENT_ID ||
     process.env.SERVICE_NAME ||

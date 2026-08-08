@@ -231,11 +231,7 @@ def create_app() -> FastAPI:
 
 # Module-level app instance so `uvicorn src.main:app` can find it, matching
 # every sibling ML service (credit-engine, transaction-service,
-# compliance-service all define `app = FastAPI(...)` at module scope).
-# create_app() alone is a factory - without this, "uvicorn src.main:app"
-# fails immediately with "Attribute 'app' not found in module 'src.main'",
-# which is what start_services.sh invokes generically for every Python
-# service.
+# compliance-service).
 app = create_app()
 
 

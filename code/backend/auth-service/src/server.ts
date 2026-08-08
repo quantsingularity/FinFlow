@@ -19,14 +19,7 @@ const server = app.listen(PORT, async () => {
     process.exit(1);
   }
 
-  // Kafka is treated as best-effort: local dev (start_services.sh) does not
-  // run Zookeeper/Kafka, and a service that can reach its database has no
-  // real reason to refuse HTTP traffic just because the event bus is down.
-  // This previously shared the same try/catch as initializeDatabase(), so a
-  // Kafka connection failure (the normal case locally) called process.exit(1)
-  // ~20-30 seconds after the health check had already reported the service
-  // ready - it would pass its health check and then silently die once
-  // Kafka's retry budget (kafkaConfig.retry.retries) was exhausted.
+  // Kafka is best-effort; a broker outage should not take down the service.
   try {
     await initializeKafka();
     logger.info(`auth-service running on port ${PORT}, Kafka connected`);

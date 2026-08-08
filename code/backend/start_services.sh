@@ -131,16 +131,10 @@ wait_for_service() {
     return 1
 }
 
-# Render a localhost gateway config from nginx.conf. The committed config uses
-# Docker service hostnames (e.g. auth-service:4000) that do not resolve on the
-# host, so every "server <name>:<port>" upstream is rewritten to 127.0.0.1, the
-# credit upstream is pointed at CREDIT_ENGINE_PORT, and "listen" is set to
-# GATEWAY_PORT. The config's own "pid" directive is also rewritten to
-# RUN_DIR/nginx.pid: nginx.conf hardcodes /var/run/nginx.pid, a system path a
-# non-root local run typically can't write to, and leaving it in place while
-# also passing "-g pid ...;" on the command line makes nginx refuse to start
-# with '"pid" directive is duplicate' (a directive can only be set once,
-# whether from the config file or -g, not both).
+# Render a localhost gateway config from nginx.conf: rewrites Docker service
+# hostnames to 127.0.0.1, sets the credit-engine upstream and listen port, and
+# points pid/error_log/access_log at local, writable paths instead of
+# nginx.conf's hardcoded /var/run and /var/log/nginx paths.
 render_gateway_config() {
     local src="$ROOT_DIR/nginx.conf" out="$RUN_DIR/nginx.local.conf"
     [ -f "$src" ] || { echo -e "${YELLOW}nginx.conf not found, skipping gateway render${NC}"; return 1; }
@@ -149,6 +143,8 @@ render_gateway_config() {
         -e 's/server[[:space:]]+([a-z0-9-]+):([0-9]+);/server 127.0.0.1:\2;/' \
         -e 's/listen[[:space:]]+[0-9]+;/listen '"$GATEWAY_PORT"';/' \
         -e 's|pid[[:space:]]+[^;]+;|pid '"$RUN_DIR"'/nginx.pid;|' \
+        -e 's|error_log[[:space:]]+/var/log/nginx/[^;]+;|error_log '"$LOG_DIR"'/nginx-error.log warn;|' \
+        -e 's|access_log[[:space:]]+/var/log/nginx/[^;]+;|access_log '"$LOG_DIR"'/nginx-access.log main;|' \
         "$src" > "$out"
     echo "$out"
 }
