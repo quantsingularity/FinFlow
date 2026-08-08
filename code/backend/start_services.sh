@@ -135,7 +135,12 @@ wait_for_service() {
 # Docker service hostnames (e.g. auth-service:4000) that do not resolve on the
 # host, so every "server <name>:<port>" upstream is rewritten to 127.0.0.1, the
 # credit upstream is pointed at CREDIT_ENGINE_PORT, and "listen" is set to
-# GATEWAY_PORT.
+# GATEWAY_PORT. The config's own "pid" directive is also rewritten to
+# RUN_DIR/nginx.pid: nginx.conf hardcodes /var/run/nginx.pid, a system path a
+# non-root local run typically can't write to, and leaving it in place while
+# also passing "-g pid ...;" on the command line makes nginx refuse to start
+# with '"pid" directive is duplicate' (a directive can only be set once,
+# whether from the config file or -g, not both).
 render_gateway_config() {
     local src="$ROOT_DIR/nginx.conf" out="$RUN_DIR/nginx.local.conf"
     [ -f "$src" ] || { echo -e "${YELLOW}nginx.conf not found, skipping gateway render${NC}"; return 1; }
@@ -143,6 +148,7 @@ render_gateway_config() {
         -e 's/server[[:space:]]+credit-engine:[0-9]+;/server 127.0.0.1:'"$CREDIT_ENGINE_PORT"';/' \
         -e 's/server[[:space:]]+([a-z0-9-]+):([0-9]+);/server 127.0.0.1:\2;/' \
         -e 's/listen[[:space:]]+[0-9]+;/listen '"$GATEWAY_PORT"';/' \
+        -e 's|pid[[:space:]]+[^;]+;|pid '"$RUN_DIR"'/nginx.pid;|' \
         "$src" > "$out"
     echo "$out"
 }
@@ -172,7 +178,7 @@ if command -v nginx >/dev/null 2>&1; then
         failed_services+=("api-gateway")
     elif [ -n "$conf" ]; then
         echo -e "${YELLOW}Starting nginx gateway on port $GATEWAY_PORT...${NC}"
-        nohup nginx -c "$conf" -g "daemon off; pid $RUN_DIR/nginx.pid;" \
+        nohup nginx -c "$conf" -g "daemon off;" \
             > "$LOG_DIR/api-gateway.log" 2>&1 &
         echo $! > "$RUN_DIR/api-gateway.pid"
         if ! wait_for_service "api-gateway" "$GATEWAY_PORT"; then

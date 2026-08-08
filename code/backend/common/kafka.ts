@@ -9,8 +9,14 @@ dotenv.config();
  * Kafka Configuration
  */
 const kafkaConfig: KafkaConfig = {
-  // Use a sensible default but encourage setting via env
-  clientId: process.env.KAFKA_CLIENT_ID || "auth-service",
+  // Falls back to SERVICE_NAME (exported per-service by start_services.sh)
+  // rather than a hardcoded service name, so every service identifies
+  // itself correctly to Kafka instead of every service reporting as
+  // "auth-service".
+  clientId:
+    process.env.KAFKA_CLIENT_ID ||
+    process.env.SERVICE_NAME ||
+    "finflow-service",
   // Split brokers string into an array, defaults to localhost:9092
   brokers: (process.env.KAFKA_BROKERS || "localhost:9092").split(","),
   retry: {
@@ -25,8 +31,9 @@ const kafka = new Kafka(kafkaConfig);
 // Create producer and consumer instances
 const producer: Producer = kafka.producer();
 const consumer: Consumer = kafka.consumer({
-  // Use a sensible default but encourage setting via env
-  groupId: process.env.KAFKA_GROUP_ID || "auth-service-group",
+  groupId:
+    process.env.KAFKA_GROUP_ID ||
+    `${process.env.SERVICE_NAME || "finflow"}-group`,
 });
 
 /**
