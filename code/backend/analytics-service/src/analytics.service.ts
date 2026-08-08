@@ -103,12 +103,6 @@ class AnalyticsService {
     endDate: Date,
     forecastType: string,
   ): Promise<any> {
-    // BUG FIX: This validated the raw, uncased forecastType against a list that
-    // duplicated every entry in both lower and UPPER case, so mixed-case values
-    // (e.g. "Revenue", "CashFlow") were still rejected as invalid even though
-    // they're semantically valid. Normalising to lower case before comparing
-    // against a single canonical list actually achieves case-insensitivity
-    // (mirrors the same fix applied to the route handler in app.ts).
     const validTypes = ["revenue", "expenses", "cashflow"];
     const normalizedType = forecastType?.toLowerCase();
     if (!validTypes.includes(normalizedType)) {

@@ -18,10 +18,6 @@ from typing import Any, Dict, List
 import numpy as np
 import pandas as pd
 
-# BUG FIX: The original imports referenced modules that do not exist in the
-# repository (config.database, config.redis_client, models.cash_flow, utils.*).
-# These are replaced with self-contained stubs so the service is importable and
-# runnable. Replace stubs with real implementations when those modules are added.
 
 
 async def get_database():
@@ -256,9 +252,6 @@ class CashFlowService:
             db = await get_database()
             end_date = datetime.now()
             start_date = end_date - timedelta(days=months * 30.44)
-            # BUG FIX: The original code first built a raw f-string query with
-            # user_id interpolated directly (SQL injection risk), then immediately
-            # overwrote it with a parameterized query. The dead f-string is removed.
             query = "\n            SELECT \n                DATE_TRUNC('day', created_at) as date,\n                SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END) as inflow,\n                SUM(CASE WHEN amount < 0 THEN ABS(amount) ELSE 0 END) as outflow,\n                COUNT(*) as transaction_count,\n                AVG(amount) as avg_transaction,\n                STRING_AGG(DISTINCT category, ',') as categories\n            FROM transactions \n            WHERE user_id = %s \n                AND created_at >= %s \n                AND created_at <= %s\n            GROUP BY DATE_TRUNC('day', created_at)\n            ORDER BY date\n            "
             result = await db.fetch_all(query, [user_id, start_date, end_date])
             if not result:
@@ -267,9 +260,6 @@ class CashFlowService:
             df["date"] = pd.to_datetime(df["date"])
             df["net_flow"] = df["inflow"] - df["outflow"]
             df["cumulative_flow"] = df["net_flow"].cumsum()
-            # BUG FIX: resample().fillna() is not defined on a Resampler object and
-            # silently does nothing. Must aggregate first (.sum()) to get a Series,
-            # then fill gaps with 0. Also reset index after to restore the date column.
             df = df.set_index("date").resample("D").sum().fillna(0).reset_index()
             return df
         except Exception as e:
@@ -357,8 +347,6 @@ class CashFlowService:
                 features_df["date"].max() + timedelta(days=i)
                 for i in range(1, horizon + 1)
             ]
-            # BUG FIX: The original code created a DataFrame here but never assigned
-            # or used it — pure dead allocation removed.
             ml_models = ["random_forest", "gradient_boosting", "linear_regression"]
             ml_predictions = []
             for model_name in ml_models:

@@ -1,9 +1,6 @@
 import logging
 import os as _os
 
-# BUG FIX: 'from models import' is a bare module name that only resolves
-# when the Python CWD is transaction-service/src/. Insert the directory of
-# this file into sys.path so it resolves correctly regardless of CWD.
 import sys as _sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple

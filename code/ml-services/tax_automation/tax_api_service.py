@@ -1,9 +1,6 @@
 import logging
 import os as _os
 
-# Corrected imports
-# BUG FIX: Bare module name only resolves when CWD is tax_automation/.
-# Use sys.path insertion to make imports robust from any working directory.
 import sys as _sys
 from datetime import datetime
 from decimal import Decimal
@@ -444,9 +441,6 @@ if __name__ == "__main__":
     # Initialize the tax system
     init_tax_system()
 
-    # BUG FIX: debug=True enables the interactive Werkzeug debugger which exposes
-    # an RCE vulnerability in any environment and leaks full stack traces to clients.
-    # Use the DEBUG environment variable to control this safely.
     import os
 
     debug_mode = os.getenv("FLASK_DEBUG", "false").lower() == "true"

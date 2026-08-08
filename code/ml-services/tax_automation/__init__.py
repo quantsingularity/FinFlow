@@ -11,9 +11,6 @@ for the Finflow financial platform, including:
 
 """
 
-# BUG FIX: Original used absolute imports ("from tax_automation.X") which cause
-# ModuleNotFoundError when run directly inside the package directory. Relative
-# imports work correctly in both installed-package and direct-run contexts.
 from .tax_calculation_engine import (
     CalculationMethod,
     TaxCalculationEngine,
@@ -25,7 +22,6 @@ from .tax_calculation_engine import (
     Transaction,
 )
 
-# BUG FIX: Changed absolute to relative imports — see comment above
 from .tax_rule_management import SAMPLE_TAX_RULES, TaxRuleDatabase, TaxRuleManager
 
 __version__ = "1.0.0"

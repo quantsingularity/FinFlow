@@ -64,15 +64,6 @@ class ForecastModel {
     const forecasts = await this.prisma.forecast.findMany({
       orderBy: [{ year: "asc" }, { month: "asc" }],
     });
-    // BUG FIX: This previously read `f.actualAmount ?? f.forecastedAmount ?? 0`,
-    // but neither `actualAmount` nor `forecastedAmount` exist anywhere on the
-    // Forecast model (see forecast.types.ts / schema.prisma - the field is just
-    // `amount`). Since the map callback's parameter was typed `any`, TypeScript
-    // never caught this, but at runtime both properties are always undefined, so
-    // every historical data point silently collapsed to amount: 0 - which meant
-    // generateForecast()'s growth-rate calculation always divided by/through
-    // zero-valued history, producing a flat, meaningless forecast for every
-    // request regardless of real data.
     return forecasts.map((f: any) => ({
       date: new Date(f.year, f.month - 1, 1),
       amount: f.amount ?? 0,

@@ -1,24 +1,8 @@
 // FinFlow shared Prisma schema
 //
-// BUG FIX: This file did not exist anywhere in the repository, even though
-// every backend service depends on "@prisma/client" and "prisma", and
-// common/database.ts (plus each service's own model layer) instantiates a
-// real `PrismaClient`. Without a schema.prisma, `prisma generate` has never
-// produced a real client - `@prisma/client`'s package ships a placeholder
-// `index.d.ts` that types `PrismaClient` as `any` and whose runtime
-// constructor throws "@prisma/client did not initialize yet. Please run
-// `prisma generate`..." the moment it's instantiated. That meant:
-//   1. Every service crashed as soon as any code path touched the database.
-//   2. Because `PrismaClient` is typed `any`, TypeScript silently accepted
-//      data-shape bugs that a real generated client would have caught at
-//      compile time (see the accompanying fixes to accounting.service.ts's
-//      debit/credit -> amount/isCredit mapping and forecast.model.ts's
-//      f.actualAmount/f.forecastedAmount typo, both of which were only
-//      possible because there was no real client to type-check against).
-//
-// Every model/field below was reconstructed from the concrete Prisma calls
-// and TypeScript interfaces already written throughout the codebase (see
-// e.g. auth-service/src/types/user.types.ts, accounting-service/src/types/
+// Models were derived from the concrete Prisma calls and TypeScript
+// interfaces already used throughout the codebase (see e.g.
+// auth-service/src/types/user.types.ts, accounting-service/src/types/
 // account.types.ts, analytics-service/src/forecast.types.ts,
 // payments-service/src/types/payment.types.ts and their corresponding
 // *.model.ts files) rather than invented from scratch. A few constraints

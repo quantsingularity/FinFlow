@@ -5,16 +5,6 @@ import { PrismaClient } from "@prisma/client";
 // Load environment variables
 dotenv.config();
 
-// BUG FIX: `new PrismaClient()` was previously called eagerly at module scope,
-// which runs the instant this file is imported - before initializeDatabase()
-// (or its try/catch) ever executes. If the Prisma client hasn't been generated
-// for the running environment, the constructor throws synchronously, so simply
-// importing common/database.ts (as every server.ts does) crashes the process
-// on startup with no chance to log a clean error or let the app serve
-// unrelated routes like /health. Instantiating lazily inside
-// initializeDatabase() (matching the pattern already used by
-// integration-service/multi-tenant-service/realtime-analytics-service's own
-// config/database.ts) turns that hard crash into a caught, loggable failure.
 let prisma: PrismaClient;
 
 export const getPrismaClient = (): PrismaClient => {

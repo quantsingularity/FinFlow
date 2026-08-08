@@ -2,8 +2,6 @@ import logging
 import os
 import os as _os
 
-# BUG FIX: Bare module name only resolves when CWD is tax_automation/.
-# Insert the directory of this script into sys.path for reliable resolution.
 import sys as _sys
 from datetime import datetime
 from decimal import Decimal

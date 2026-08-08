@@ -477,17 +477,6 @@ if __name__ == "__main__":
 
     result_service = engine.calculate_taxes(transaction_service)
 
-    # BUG FIX: This comment previously claimed only the NY sales tax would apply
-    # (50 * 8.25% = 4.13), but get_applicable_rules() matches a rule's jurisdiction
-    # against the transaction's origin OR destination OR the payer's tax residency
-    # (see step 2 above) - it was never destination-only. VAT_UK_STANDARD's
-    # jurisdiction is "UK", which matches this transaction's origin_jurisdiction,
-    # so it legitimately applies alongside SALES_TAX_NY. The comment was simply
-    # stale/incorrect relative to the engine's actual (and correct) matching logic.
-    # Expected: SALES_TAX_NY matches on destination "NY" (50 * 8.25% = 4.13) and
-    # VAT_UK_STANDARD matches on origin "UK" (50 * 20% = 10.00). The exempt rule
-    # (VAT_UK_EXEMPT_SERVICE) is skipped because the payer's SERVICE_EXEMPTION
-    # exemption is present. Total = 14.13.
     print(f"Transaction ID: {result_service.transaction_id}")
     print(f"Total Tax Amount: {result_service.total_tax_amount}")
     print(f"Applied Rules: {result_service.applied_rules}")

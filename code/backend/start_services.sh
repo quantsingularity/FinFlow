@@ -49,7 +49,7 @@ export NODE_ENV="${NODE_ENV:-development}"
 export JWT_SECRET="${JWT_SECRET:-finflow-local-dev-secret-change-me}"
 export JWT_REFRESH_SECRET="${JWT_REFRESH_SECRET:-finflow-local-dev-refresh-change-me}"
 mkdir -p /tmp/finflow-data
-export DATABASE_URL="${DATABASE_URL:-sqlite:////tmp/finflow-data/finflow.db}"
+export DATABASE_URL="${DATABASE_URL:-postgresql://finflow:finflow_password@localhost:5432/finflow_db}"
 export PYTHONUNBUFFERED=1
 
 check_port() {

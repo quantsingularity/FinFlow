@@ -77,13 +77,6 @@ except Exception as e:
 # Pydantic models for request/response validation
 class CreditScoreRequest(BaseModel):
     income: float = Field(..., description="Annual income of the applicant.")
-    # BUG FIX: The original alias_generator was defined as a plain instance method
-    # inside the inner Config class (missing @staticmethod), causing a TypeError
-    # at class construction time. Additionally, model_dump(by_alias=True) was used
-    # in the endpoint but the mapping pointed camelCase→snake, not snake→camelCase,
-    # so data["numInvoices"] raised a KeyError at runtime.
-    # Fix: rename fields to snake_case (Python convention) and keep camelCase as
-    # JSON aliases using Field(alias=...) with model_config allowing population by name.
     num_invoices: int = Field(
         ..., alias="numInvoices", description="Number of invoices processed."
     )
@@ -153,10 +146,6 @@ async def score_credit(
     )
 
     try:
-        # BUG FIX: Previously used model_dump(by_alias=True) then accessed
-        # data["numInvoices"]/data["avgCashflow"] — the alias mapping was inverted
-        # so those keys did not exist, causing a KeyError. Now access fields
-        # directly by their snake_case Python names.
         features = [
             input_data.income,
             input_data.num_invoices,

@@ -3,10 +3,6 @@ import logger from "../../common/logger";
 import errorMiddleware from "../../common/error.middleware";
 import { initializeDatabase, disconnectDatabase } from "../../common/database";
 import { initializeKafka, disconnectKafka } from "../../common/kafka";
-// BUG FIX: See auth-service/src/server.ts for the full explanation - this file
-// created a bare `express()` instance and never mounted the real routes/
-// middleware defined in ./app.ts, so the actual deployed process (Docker CMD /
-// `npm start` both run dist/server.js) 404'd on every /api/analytics/* route.
 import app from "./app";
 
 dotenv.config();

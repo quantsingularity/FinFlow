@@ -39,12 +39,6 @@ const authenticate = (
 
 const getAnalyticsService = () => require("./analytics.service").default;
 
-// BUG FIX: This previously claimed to fix case-insensitive matching but didn't
-// actually do so - it just listed each value in both cases and still called
-// `.includes(forecastType)` directly against the raw input, so a mixed-case
-// value like "Revenue" or "CashFlow" was still rejected as invalid. Genuinely
-// fixing this requires normalising the input before comparing it against a
-// single canonical (lower-case) list, as done at the call site below.
 const VALID_FORECAST_TYPES = ["revenue", "expenses", "cashflow"];
 
 // GET /api/analytics/transaction-summary

@@ -4,8 +4,6 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-# BUG FIX: @validator and @root_validator were removed in Pydantic v2.
-# Migrated to @field_validator and @model_validator.
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 # --- Enums ---

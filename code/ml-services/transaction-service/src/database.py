@@ -45,15 +45,6 @@ class TransactionDatabase:
         # Create session factory for transactional use (default commit/rollback)
         self.Session = sessionmaker(bind=self.engine)
 
-        # Create session factory for read-only use.
-        # BUG FIX: `autocommit=True` was removed from SQLAlchemy's Session/sessionmaker
-        # entirely as of 1.4/2.0 - passing it raises
-        # `sqlalchemy.exc.ArgumentError: autocommit=True is no longer supported` the
-        # moment a session is instantiated, which crashed every call to
-        # read_session_scope() (get_transaction, get_transactions_by_account,
-        # get_transaction_statistics, get_database_health). Read-only sessions in
-        # modern SQLAlchemy simply don't call commit(); read_session_scope() below
-        # already never commits, so dropping autocommit is sufficient.
         self.ReadSession = sessionmaker(bind=self.engine, autoflush=True)
 
         logger.info(

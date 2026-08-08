@@ -94,6 +94,7 @@
     "sharp": "^0.32.4",
     "snappy": "^7.2.2",
     "socket.io": "^4.7.2",
+    "square": "^30.0.0",
     "stripe": "^12.18.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0",

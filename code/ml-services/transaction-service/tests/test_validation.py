@@ -8,8 +8,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../src"))
 
 import os as _os
 
-# BUG FIX: bare 'from models import' only resolves when CWD is src/.
-# Insert src/ into sys.path so tests run correctly from the repo root.
 import sys as _sys
 
 _sys.path.insert(

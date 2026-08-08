@@ -446,10 +446,6 @@ async def query_transactions(
     current_user: dict = Depends(get_current_user),
 ):
     """Query transactions based on filters"""
-    # BUG FIX: Python's built-in hash() is randomised per-process via PYTHONHASHSEED,
-    # so hash(frozenset(...)) produces a different value on every restart and can
-    # collide between different queries. Use hashlib.sha256 for a stable, collision-
-    # resistant cache key.
     query_repr = json.dumps(query.model_dump(), sort_keys=True)
     cache_key = f"transactions:query:{hashlib.sha256(query_repr.encode()).hexdigest()}"
 

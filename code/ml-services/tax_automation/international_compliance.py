@@ -402,11 +402,6 @@ class KYCService:
                     "missing_documents": missing_docs,
                     "risk_factors": profile.risk_factors,
                 },
-                # BUG FIX: datetime.now().replace(year=...+1) raises
-                # `ValueError: day is out of range for month` whenever a KYC check
-                # is performed on Feb 29 of a leap year (there is no Feb 29 in the
-                # following, non-leap year), crashing every KYC check run on that
-                # date. relativedelta(years=1) correctly rolls Feb 29 -> Feb 28.
                 expires_at=datetime.now() + relativedelta(years=1),
             )
 
