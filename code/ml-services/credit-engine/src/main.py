@@ -9,6 +9,7 @@ from typing import Dict, List, Optional
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt as jose_jwt
 from pydantic import BaseModel, Field
 
 # Configure logging
@@ -114,16 +115,36 @@ class LoanOffersResponse(BaseModel):
 
 
 # JWT validation dependency
+#
+# This previously accepted any bearer token string without validating it at
+# all - OAuth2PasswordBearer only checks that an Authorization: Bearer header
+# is present, it does not verify the token - and unconditionally returned a
+# hardcoded fake user regardless of who actually called it. python-jose was
+# already a declared dependency (requirements.txt) and unused anywhere in
+# this file, suggesting real validation was the original intent. This now
+# verifies the token the same way every other FinFlow service does: HS256,
+# signed with the shared JWT_SECRET, subject claim carries the user id.
+JWT_SECRET = os.getenv("JWT_SECRET", "dev-only-insecure-jwt-secret-do-not-use-in-prod")
+JWT_ALGORITHM = "HS256"
+
+
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     """
     Dependency to validate JWT token and retrieve current user.
     """
-    # In production, this would validate the JWT against Auth service
-    # For demo, we'll just log and accept any token
-    logger.info(f"Received token: {token[:10]}...")
-    # NOTE: The original code was missing a return statement in the docstring block.
-    # The return value is used in the endpoint handlers.
-    return {"sub": "demo-user", "role": "USER"}
+    try:
+        payload = jose_jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        user_id = payload.get("sub")
+        if user_id is None:
+            raise JWTError("Token payload is missing the 'sub' claim")
+        return {"sub": user_id, "role": payload.get("role", "USER")}
+    except JWTError as e:
+        logger.warning(f"JWT validation failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired authentication token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 
 # Endpoints

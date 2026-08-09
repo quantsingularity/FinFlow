@@ -33,7 +33,11 @@ const authenticate = (
     const decoded = jwt.verify(token, config.jwt.secret, {
       algorithms: ["HS256"],
     }) as any;
-    (req as any).user = { id: decoded.sub, role: decoded.role };
+    (req as any).user = {
+      id: decoded.sub,
+      sub: decoded.sub,
+      role: decoded.role,
+    };
     next();
   } catch {
     res.status(401).json({ success: false, error: "Invalid or expired token" });

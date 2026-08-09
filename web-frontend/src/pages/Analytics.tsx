@@ -78,7 +78,7 @@ export default function Analytics() {
     const inB = new Map<string, number>();
     const outB = new Map<string, number>();
     txns.forEach((t) => {
-      const k = new Date(t.transactionDate).toLocaleString("en-US", {
+      const k = new Date(t.date).toLocaleString("en-US", {
         month: "short",
       });
       if ((t.amount || 0) >= 0) inB.set(k, (inB.get(k) ?? 0) + t.amount);

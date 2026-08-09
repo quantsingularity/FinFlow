@@ -1,4 +1,12 @@
 import { body, param } from "express-validator";
+import { InvoiceStatus } from "./invoice.types";
+
+// Import the enum's own values instead of duplicating them as a literal list,
+// which had drifted out of sync: it previously allowed only
+// ["PENDING", "PAID", "OVERDUE", "CANCELLED"], silently rejecting the
+// "DRAFT" and "SENT" statuses that InvoiceStatus (and the Invoice Prisma
+// model) actually support.
+const VALID_INVOICE_STATUSES = Object.values(InvoiceStatus);
 
 // Validation rules for invoice creation
 export const createInvoiceValidation = [
@@ -11,8 +19,8 @@ export const createInvoiceValidation = [
     .withMessage("Due date must be a valid date in ISO 8601 format"),
   body("status")
     .optional()
-    .isIn(["PENDING", "PAID", "OVERDUE", "CANCELLED"])
-    .withMessage("Status must be one of: PENDING, PAID, OVERDUE, CANCELLED"),
+    .isIn(VALID_INVOICE_STATUSES)
+    .withMessage(`Status must be one of: ${VALID_INVOICE_STATUSES.join(", ")}`),
 ];
 
 // Validation rules for invoice ID parameter
@@ -38,8 +46,8 @@ export const updateInvoiceValidation = [
     .withMessage("Due date must be a valid date in ISO 8601 format"),
   body("status")
     .optional()
-    .isIn(["PENDING", "PAID", "OVERDUE", "CANCELLED"])
-    .withMessage("Status must be one of: PENDING, PAID, OVERDUE, CANCELLED"),
+    .isIn(VALID_INVOICE_STATUSES)
+    .withMessage(`Status must be one of: ${VALID_INVOICE_STATUSES.join(", ")}`),
 ];
 
 export default {

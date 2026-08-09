@@ -89,7 +89,7 @@ export default function Transactions() {
                     </Badge>
                   </TableCell>
                   <TableCell className="hidden text-muted-foreground md:table-cell">
-                    {formatDate(t.transactionDate)}
+                    {formatDate(t.date)}
                   </TableCell>
                   <TableCell className="text-right">
                     <Money amount={t.amount} signed />

@@ -39,15 +39,31 @@ export async function getCreditScore(): Promise<CreditScore> {
 }
 
 export async function getLoans(): Promise<Loan[]> {
-  const { data } = await api.get("/credit/loans");
-  const list = Array.isArray(data)
-    ? data
-    : Array.isArray(data?.data)
-      ? data.data
-      : Array.isArray(data?.loans)
-        ? data.loans
-        : [];
-  return list as Loan[];
+  // BACKEND GAP (flagged, not fixed here): credit-engine has no concept of
+  // "the user's loans" - no persistence, no application workflow. /offers is
+  // a stateless generator that returns generic loan-offer templates (no id,
+  // status, purpose, or createdAt - those fields are synthesized below just
+  // to make the existing table render something coherent). This previously
+  // called a /credit/loans endpoint that has never existed on the backend.
+  const { data } = await api.get("/credit/offers");
+  const offers = Array.isArray(data?.offers) ? data.offers : [];
+  return offers.map(
+    (
+      o: {
+        amount: number;
+        interest_rate: number;
+        term_months: number;
+      },
+      i: number,
+    ) => ({
+      id: `offer-${i}`,
+      amount: o.amount,
+      currency: "USD",
+      status: "AVAILABLE",
+      term: `${o.term_months} months`,
+      rate: o.interest_rate,
+    }),
+  );
 }
 
 export async function applyForLoan(input: {
@@ -55,6 +71,12 @@ export async function applyForLoan(input: {
   term: string;
   purpose: string;
 }): Promise<Loan> {
+  // BACKEND GAP (flagged, not fixed here): there is no endpoint anywhere in
+  // credit-engine to submit or persist a loan application - /offers only
+  // generates example offer templates. This call will 404 until that
+  // functionality actually exists server-side; building it (a real
+  // application resource, persistence, and workflow) is a product decision
+  // beyond a routing fix.
   const { data } = await api.post("/credit/loans", input);
   return (data?.data ?? data) as Loan;
 }

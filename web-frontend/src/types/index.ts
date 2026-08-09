@@ -62,7 +62,7 @@ export interface Transaction {
   description: string;
   amount: number;
   category: string;
-  transactionDate: string;
+  date: string;
   createdAt: string;
   updatedAt: string;
 }

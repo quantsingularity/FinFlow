@@ -29,9 +29,16 @@ describe("paymentService", () => {
     vi.clearAllMocks();
   });
 
+  // payments-service wraps every response as { success: true, data: T }
+  // (confirmed against payment.integration.test.ts on the backend), so the
+  // axios mock responses here return that wrapper shape, and each service
+  // function is expected to unwrap `.data.data` rather than `.data`.
+
   test("getPayments requests the payments collection", async () => {
     const payments = [{ id: "pay-1" }, { id: "pay-2" }];
-    mockedApi.get.mockResolvedValue({ data: payments });
+    mockedApi.get.mockResolvedValue({
+      data: { success: true, data: payments },
+    });
 
     const result = await getPayments();
 
@@ -41,7 +48,7 @@ describe("paymentService", () => {
 
   test("getPayment requests a single payment by id", async () => {
     const payment = { id: "pay-1" };
-    mockedApi.get.mockResolvedValue({ data: payment });
+    mockedApi.get.mockResolvedValue({ data: { success: true, data: payment } });
 
     const result = await getPayment("pay-1");
 
@@ -52,7 +59,9 @@ describe("paymentService", () => {
   test("createPayment posts to the payments endpoint", async () => {
     const input = { userId: "user-1", amount: 100, currency: "USD" };
     const created = { id: "pay-new", status: "PENDING", ...input };
-    mockedApi.post.mockResolvedValue({ data: created });
+    mockedApi.post.mockResolvedValue({
+      data: { success: true, data: created },
+    });
 
     const result = await createPayment(input as never);
 
@@ -62,7 +71,7 @@ describe("paymentService", () => {
 
   test("updatePayment puts to the payment id endpoint", async () => {
     const updated = { id: "pay-1", status: "COMPLETED" };
-    mockedApi.put.mockResolvedValue({ data: updated });
+    mockedApi.put.mockResolvedValue({ data: { success: true, data: updated } });
 
     const result = await updatePayment("pay-1", { status: "COMPLETED" });
 

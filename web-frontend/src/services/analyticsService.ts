@@ -2,19 +2,19 @@ import type { Transaction } from "../types";
 import api from "./api";
 
 export const getTransactions = async (): Promise<Transaction[]> => {
-  const response = await api.get("/analytics/transactions");
+  const response = await api.get("/accounting/transactions");
   return response.data;
 };
 
 export const getTransaction = async (id: string): Promise<Transaction> => {
-  const response = await api.get(`/analytics/transactions/${id}`);
+  const response = await api.get(`/accounting/transactions/${id}`);
   return response.data;
 };
 
 export const createTransaction = async (
   transactionData: Omit<Transaction, "id" | "createdAt" | "updatedAt">,
 ): Promise<Transaction> => {
-  const response = await api.post("/analytics/transactions", transactionData);
+  const response = await api.post("/accounting/transactions", transactionData);
   return response.data;
 };
 
@@ -23,14 +23,14 @@ export const updateTransaction = async (
   transactionData: Partial<Transaction>,
 ): Promise<Transaction> => {
   const response = await api.put(
-    `/analytics/transactions/${id}`,
+    `/accounting/transactions/${id}`,
     transactionData,
   );
   return response.data;
 };
 
 export const deleteTransaction = async (id: string): Promise<void> => {
-  await api.delete(`/analytics/transactions/${id}`);
+  await api.delete(`/accounting/transactions/${id}`);
 };
 
 export const getCategorizedTransactions = async (): Promise<Transaction[]> => {

@@ -21,6 +21,7 @@ from .src.tax_calculation_engine import (
     TaxType,
     Transaction,
 )
+
 from .src.tax_rule_management import SAMPLE_TAX_RULES, TaxRuleDatabase, TaxRuleManager
 
 __version__ = "1.0.0"

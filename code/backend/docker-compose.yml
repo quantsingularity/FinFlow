@@ -242,6 +242,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
+      <<: *common-env
       PORT: 8000
       DATABASE_URL: ${DATABASE_URL:-postgresql://finflow:finflow_password@postgres:5432/finflow_db}
       REDIS_HOST: ${REDIS_HOST:-redis}

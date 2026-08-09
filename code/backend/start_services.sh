@@ -114,7 +114,7 @@ start_service() {
 
 # Poll the service's /health endpoint until it responds.
 wait_for_service() {
-    local name=$1 port=$2 max=30 attempt=1
+    local name=$1 port=$2 max=60 attempt=1
     echo "Waiting for $name to be ready..."
     while [ "$attempt" -le "$max" ]; do
         if curl -s "http://localhost:$port/health" >/dev/null 2>&1; then

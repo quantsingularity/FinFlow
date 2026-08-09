@@ -31,7 +31,11 @@ const authenticate = (
     const decoded = jwt.verify(token, config.jwt.secret, {
       algorithms: ["HS256"],
     }) as any;
-    (req as any).user = { id: decoded.sub, role: decoded.role };
+    (req as any).user = {
+      id: decoded.sub,
+      sub: decoded.sub,
+      role: decoded.role,
+    };
     next();
   } catch {
     res.status(401).json({ success: false, error: "Invalid or expired token" });
@@ -65,6 +69,35 @@ app.get("/api/payments", authenticate, async (req: Request, res: Response) => {
     res.status(500).json({ success: false, error: "Internal server error" });
   }
 });
+
+// GET /api/payments/:id - get a single payment
+// Checks ownership: only the payment owner can view its details. Was
+// previously missing entirely - the dashboard's PaymentDetail page called
+// this and always got a 404 (no matching route at all).
+app.get(
+  "/api/payments/:id",
+  authenticate,
+  async (req: Request, res: Response) => {
+    try {
+      const paymentId = req.params.id;
+      const user = (req as any).user;
+
+      const payment = await paymentService.findById(paymentId);
+      if (!payment) {
+        res.status(404).json({ success: false, error: "Payment not found" });
+        return;
+      }
+      if (payment.userId !== user.id) {
+        res.status(403).json({ success: false, error: "Permission denied" });
+        return;
+      }
+
+      res.status(200).json({ success: true, data: payment });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: "Internal server error" });
+    }
+  },
+);
 
 // GET /api/payments/:id/status - get payment status
 app.get(

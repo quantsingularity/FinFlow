@@ -2,9 +2,18 @@ import { body, param } from "express-validator";
 
 // Validation rules for transaction creation
 export const createTransactionValidation = [
+  // Unlike invoices (always a positive amount owed), transactions represent
+  // both inflows and outflows via a signed amount - see e.g. Analytics.tsx's
+  // `(t.amount || 0) >= 0 ? inflow : outflow` logic. This previously required
+  // `min: 0.01` (copied from invoice.validator.ts's positive-only check),
+  // which would have rejected every expense/outflow transaction (any
+  // negative amount) at the validation layer.
   body("amount")
-    .isFloat({ min: 0.01 })
-    .withMessage("Amount must be greater than 0"),
+    .isFloat()
+    .withMessage("Amount must be a number")
+    .not()
+    .equals("0")
+    .withMessage("Amount cannot be zero"),
   body("category")
     .optional()
     .isString()
@@ -29,8 +38,11 @@ export const updateTransactionValidation = [
   param("id").isUUID().withMessage("Transaction ID must be a valid UUID"),
   body("amount")
     .optional()
-    .isFloat({ min: 0.01 })
-    .withMessage("Amount must be greater than 0"),
+    .isFloat()
+    .withMessage("Amount must be a number")
+    .not()
+    .equals("0")
+    .withMessage("Amount cannot be zero"),
   body("category")
     .optional()
     .isString()

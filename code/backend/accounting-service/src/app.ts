@@ -3,6 +3,8 @@ import cors from "cors";
 import helmet from "helmet";
 import jwt from "jsonwebtoken";
 import config from "../../common/config";
+import invoiceRoutes from "./invoice.routes";
+import transactionRoutes from "./transaction.routes";
 
 const app = express();
 
@@ -30,7 +32,11 @@ const authenticate = (
     const decoded = jwt.verify(token, config.jwt.secret, {
       algorithms: ["HS256"],
     }) as any;
-    (req as any).user = { id: decoded.sub, role: decoded.role };
+    (req as any).user = {
+      id: decoded.sub,
+      sub: decoded.sub,
+      role: decoded.role,
+    };
     next();
   } catch {
     res.status(401).json({ success: false, error: "Invalid or expired token" });
@@ -224,5 +230,13 @@ app.get(
     }
   },
 );
+
+// /api/accounting/invoices and /api/accounting/transactions - the full
+// CRUD routers built for these resources (invoice.routes.ts,
+// transaction.routes.ts) previously existed but were never mounted here,
+// even though the web dashboard's Invoices/Transactions pages (and the
+// main Dashboard landing page) call exactly these paths.
+app.use("/api/accounting/invoices", authenticate, invoiceRoutes);
+app.use("/api/accounting/transactions", authenticate, transactionRoutes);
 
 export default app;

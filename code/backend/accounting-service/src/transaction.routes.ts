@@ -1,10 +1,17 @@
 import express from "express";
 import transactionController from "./transaction.controller";
+import { validate } from "./middleware/validation.middleware";
+import {
+  createTransactionValidation,
+  transactionIdValidation,
+  updateTransactionValidation,
+} from "./transaction.validator";
 
 const router = express.Router();
 
 router.post(
   "/",
+  validate(createTransactionValidation),
   transactionController.createTransaction.bind(transactionController),
 );
 router.get(
@@ -13,6 +20,7 @@ router.get(
 );
 router.get(
   "/:id",
+  validate(transactionIdValidation),
   transactionController.getTransactionById.bind(transactionController),
 );
 router.get(
@@ -21,10 +29,12 @@ router.get(
 );
 router.put(
   "/:id",
+  validate(updateTransactionValidation),
   transactionController.updateTransaction.bind(transactionController),
 );
 router.delete(
   "/:id",
+  validate(transactionIdValidation),
   transactionController.deleteTransaction.bind(transactionController),
 );
 
