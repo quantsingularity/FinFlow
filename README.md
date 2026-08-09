@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/github/license/quantsingularity/FinFlow?style=flat-square)](LICENSE)
 
 <div align="center">
-  <img src="docs/images/FinFlow_Dashboard.bmp" alt="FinFlow Dashboard" width="80%">
+  <img src="docs/images/homepage.bmp" alt="FinFlow HomePage" width="80%">
 </div>
 
 ### Table of Contents
