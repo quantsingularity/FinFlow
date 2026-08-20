@@ -1,330 +1,272 @@
-# FinFlow - Financial Operations & Workflow Platform
+# FinFlow
 
-![CI/CD Status](https://img.shields.io/github/actions/workflow/status/quantsingularity/Finflow/cicd.yml?branch=main&label=CI/CD&logo=github)
-[![Test Coverage](https://img.shields.io/badge/coverage-96%25-brightgreen)](https://github.com/quantsingularity/FinFlow/tree/main/coverage)
-[![License](https://img.shields.io/github/license/quantsingularity/FinFlow?style=flat-square)](LICENSE)
+![CI/CD Status](https://img.shields.io/github/actions/workflow/status/quantsingularity/FinFlow/cicd.yml?branch=main&label=CI%2FCD&logo=github)
+
+## Financial Operations and Workflow Platform
+
+FinFlow is a financial operations platform: 8 independent Node.js and TypeScript services (auth, payments, accounting, analytics, integration, multi-tenant, performance, and real-time analytics) sharing a Prisma/PostgreSQL data layer and a common Express-based server module, paired with a React web dashboard and a React Native mobile app. A separate set of 5 Python services (credit scoring, AI features, compliance, tax automation, and transaction processing) rounds out the platform.
 
 <div align="center">
-  <img src="docs/images/homepage.bmp" alt="FinFlow HomePage" width="80%">
+  <img src="docs/images/homepage.bmp" alt="FinFlow HomePage" width="100%">
 </div>
 
-### Table of Contents
+## Table of Contents
 
 - [Overview](#overview)
 - [Project Structure](#project-structure)
-- [Key Features](#key-features)
-- [Architecture](#architecture)
+- [Feature Status](#feature-status)
 - [Technology Stack](#technology-stack)
-- [Getting Started](#getting-started)
-- [API Documentation](#api-documentation)
+- [Architecture](#architecture)
+- [Installation and Setup](#installation-and-setup)
+- [Running the Stack](#running-the-stack)
+- [API Surface](#api-surface)
 - [Testing](#testing)
 - [CI/CD Pipeline](#cicd-pipeline)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
 - [License](#license)
 
----
-
 ## Overview
 
-FinFlow is a modern financial operations platform designed to help businesses streamline their financial workflows, from payment processing to accounting and analytics. The platform combines traditional financial operations with cutting-edge technology to provide a secure, scalable, and efficient solution for managing financial data and processes. It is built on a foundation of independent, domain-specific microservices to ensure high availability and maintainability.
-
----
+FinFlow demonstrates a financial operations workflow across a real, runnable set of services, with substantial test suites throughout. The Node.js side is a genuine npm-workspaces monorepo built on Express (a Fastify dependency is declared but never instantiated), with real multi-processor payment support (Stripe, PayPal, and Square each have their own client and a factory that selects between them). The API Gateway defined in Docker Compose points at a `services/api-gateway` directory that doesn't exist anywhere in this repository, so as currently wired that container can't be built from source.
 
 ## Project Structure
 
-The project is organized into several main components:
-
 ```
 FinFlow/
-├── backend/                # Core backend logic, services, and shared utilities
-├── docs/                   # Project documentation
-├── infrastructure/         # DevOps, deployment, and infra-related code
-├── mobile-frontend/        # Mobile application
-├── web-frontend/           # Web dashboard
-├── scripts/                # Automation, setup, and utility scripts
-├── LICENSE                 # License information
-└── README.md               # Project overview and instructions
+├── code/
+│   ├── backend/                          # Node.js/TypeScript monorepo (npm workspaces)
+│   │   ├── common/                       # Shared Express app, Prisma client, Kafka client
+│   │   ├── auth-service/                 # Authentication, MFA, OAuth
+│   │   ├── payments-service/             # Stripe, PayPal, and Square processors
+│   │   ├── accounting-service/           # Double-entry ledger, financial reports
+│   │   ├── analytics-service/            # Metrics and dashboards
+│   │   ├── integration-service/          # Third-party integrations (not in the default
+│   │   │                                 # Docker Compose stack)
+│   │   ├── multi-tenant-service/         # Multi-tenancy (not in the default stack)
+│   │   ├── performance-service/          # Performance monitoring (not in the default stack)
+│   │   ├── realtime-analytics-service/   # Streaming analytics; the one service that
+│   │   │                                 # genuinely uses MongoDB alongside Postgres
+│   │   └── prisma/                       # Prisma schema (PostgreSQL)
+│   └── ml-services/                      # 5 independent Python services
+│       ├── credit-engine/                # Credit scoring (trained on synthetic data)
+│       ├── ai-features-service/
+│       ├── compliance-service/
+│       ├── tax_automation/
+│       └── transaction-service/
+├── web-frontend/                         # React (Vite) dashboard, TypeScript
+├── mobile-frontend/                      # React Native (Expo) app, TypeScript
+├── infrastructure/                       # Docker, Kubernetes, Terraform, Ansible, monitoring
+├── scripts/                              # finflow-setup.sh, finflow-dev.sh, finflow-build.sh,
+│                                         # finflow-test-runner.sh, and more
+├── docs/                                 # Documentation (this directory)
+└── README.md
 ```
 
-## Key Features
+## Feature Status
 
-FinFlow's functionality is organized into five core service domains and a dedicated mobile experience.
+### Application tier (wired and tested)
 
-### Authentication & Authorization
+| Component                                               | Details                                                                                                                                                                                           |
+| :------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Auth service**                                        | Registration, login, and session management, with its own test suite.                                                                                                                             |
+| **Payments service**                                    | Genuine multi-processor support: separate Stripe, PayPal, and Square client classes behind a factory that picks between them at request time.                                                     |
+| **Accounting service**                                  | Double-entry ledger and financial reporting logic, with its own test suite.                                                                                                                       |
+| **Analytics service**                                   | Metrics and dashboard data, with its own test suite.                                                                                                                                              |
+| **Real-time analytics service**                         | Streaming analytics and anomaly detection; the one service in this codebase that genuinely reads and writes MongoDB, alongside the shared Postgres database.                                      |
+| **Integration, multi-tenant, and performance services** | All three exist as real, tested TypeScript services, but none of them are included in the default Docker Compose stack.                                                                           |
+| **Messaging**                                           | A real Kafka producer and consumer (kafkajs) in the shared `common` module, and Kafka itself runs as a container in Docker Compose.                                                               |
+| **Credit engine**                                       | A Python/FastAPI service with a scikit-learn `RandomForestRegressor`, currently trained entirely on synthetic data generated by `sklearn.datasets.make_classification`, not real credit outcomes. |
+| **Web dashboard**                                       | React and TypeScript app (Vite, Redux Toolkit, Tailwind CSS, shadcn/ui, Recharts).                                                                                                                |
+| **Mobile app**                                          | React Native (Expo) and TypeScript app, with Redux Toolkit for state and React Native Paper for UI components.                                                                                    |
 
-Security and access control are paramount:
+### Not currently buildable as wired
 
-| Feature                   | Description                                                                                           |
-| :------------------------ | :---------------------------------------------------------------------------------------------------- |
-| **Secure Authentication** | Features Multi-factor Authentication (MFA) with support for SMS and authenticator apps.               |
-| **Access Control**        | Implements **Role-based Access Control (RBAC)** for granular permissions across different user roles. |
-| **Integration**           | Supports OAuth integration with third-party providers (Google, GitHub, Microsoft).                    |
-| **Session Management**    | Utilizes secure, token-based authentication and session handling.                                     |
-
-### Payment Processing
-
-A flexible and real-time payment infrastructure:
-
-| Feature                     | Description                                                                              |
-| :-------------------------- | :--------------------------------------------------------------------------------------- |
-| **Multi-Processor Support** | Integrated support for major payment gateways, including **Stripe, PayPal, and Square**. |
-| **Real-time Processing**    | Instant payment verification and processing for immediate transaction finality.          |
-| **Automated Billing**       | Features recurring payments for subscription-based services.                             |
-| **Wallet Integration**      | Supports digital wallets like Apple Pay, Google Pay, and PayPal.                         |
-
-### Accounting & Reconciliation
-
-The backbone for accurate financial record-keeping:
-
-| Feature                 | Description                                                                                                    |
-| :---------------------- | :------------------------------------------------------------------------------------------------------------- |
-| **Core Accounting**     | Robust **Double-Entry Accounting** engine.                                                                     |
-| **Financial Reporting** | Ability to generate essential reports, including **balance sheets, income statements, and cash flow reports**. |
-| **Reconciliation**      | Automated account reconciliation tools for discrepancy detection.                                              |
-| **Trial Balance**       | Automatic generation of trial balance reports for audit readiness.                                             |
-
-### Analytics & Reporting
-
-Transforming raw data into actionable insights:
-
-| Feature                    | Description                                                                       |
-| :------------------------- | :-------------------------------------------------------------------------------- |
-| **Interactive Dashboards** | Visual representation of financial metrics and Key Performance Indicators (KPIs). |
-| **Data Analysis**          | Provides detailed breakdown and analysis of transaction data.                     |
-| **Visualization**          | Historical data analysis with interactive trend charts.                           |
-| **Export Capabilities**    | Supports data export in multiple formats (CSV, Excel, PDF).                       |
-
-### Credit Management
-
-Streamlining the lending process with data-driven decisions:
-
-| Feature                | Description                                           |
-| :--------------------- | :---------------------------------------------------- |
-| **Credit Scoring**     | Automated credit risk assessment for fast decisions.  |
-| **Loan Processing**    | Streamlined application and approval workflow.        |
-| **Repayment Tracking** | Automated tracking and management of loan repayments. |
-| **Default Prediction** | Utilizes ML-based models for predicting default risk. |
-
-### Mobile Frontend
-
-A modern, cross-platform experience for on-the-go management:
-
-| Feature                     | Description                                                                 |
-| :-------------------------- | :-------------------------------------------------------------------------- |
-| **Cross-platform Support**  | Built with **React Native** for a consistent experience on iOS and Android. |
-| **Offline Capabilities**    | Core functionality remains available even without an internet connection.   |
-| **Biometric Security**      | Secure login using fingerprint and face recognition.                        |
-| **Real-time Notifications** | Push notifications for important financial events.                          |
-
----
-
-## Architecture
-
-FinFlow is built on a modern microservices architecture, ensuring modularity, scalability, and resilience.
-
-### Service Architecture
-
-The platform is composed of several independent backend services, each responsible for a specific business domain:
-
-| Service                | Primary Function                                                     |
-| :--------------------- | :------------------------------------------------------------------- |
-| **Auth Service**       | User authentication, authorization, and session management.          |
-| **Payments Service**   | Payment processing, gateway integration, and transaction handling.   |
-| **Accounting Service** | Double-entry accounting, ledger management, and financial reporting. |
-| **Analytics Service**  | Data analysis, metrics calculation, and visualization.               |
-| **Credit Engine**      | Credit scoring, loan application processing, and risk assessment.    |
-
-### Infrastructure Components
-
-The services are supported by a robust infrastructure layer:
-
-| Component            | Function                                                                                             |
-| :------------------- | :--------------------------------------------------------------------------------------------------- |
-| **API Gateway**      | Handles request routing, load balancing, and composition.                                            |
-| **Service Mesh**     | Manages inter-service communication, security, and observability.                                    |
-| **Message Broker**   | Facilitates event-driven communication between services (RabbitMQ).                                  |
-| **Event Stream**     | Enables high-throughput data pipelines and real-time processing (Kafka).                             |
-| **Monitoring Stack** | Provides logging, metrics, and alerting for operational visibility (Prometheus, Grafana, ELK Stack). |
-
-### Event-Driven Communication
-
-FinFlow utilizes an event-driven architecture to ensure loose coupling and real-time data flow. Key event types include:
-
-| Event Type         | Purpose                                                                |
-| :----------------- | :--------------------------------------------------------------------- |
-| **Payment Events** | Trigger accounting entries, analytics updates, and credit assessments. |
-| **User Events**    | Manage authentication state and authorization updates across services. |
-| **System Events**  | Handle infrastructure scaling and monitoring alerts.                   |
-
----
+| Component       | Details                                                                                                                                                                                                               |
+| :-------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **API Gateway** | Docker Compose points its build context at `services/api-gateway`, a directory that doesn't exist anywhere in this repository; only a Dockerfile and Kubernetes manifests exist for it, with no source to build from. |
 
 ## Technology Stack
 
-The FinFlow platform is built using a modern, performant, and well-supported technology stack.
+| Area                 | Technology                                                                                                                       |
+| :------------------- | :------------------------------------------------------------------------------------------------------------------------------- |
+| Backend services     | Node.js 20, TypeScript, Express (a Fastify dependency is declared but unused)                                                    |
+| ORM / data layer     | Prisma, PostgreSQL (one database per containerized service), MongoDB (real-time analytics service only), Redis (via Bull/BullMQ) |
+| Messaging            | Kafka (kafkajs)                                                                                                                  |
+| Payments             | Stripe, PayPal, and Square SDKs behind a processor factory                                                                       |
+| Python / ML services | Python, FastAPI, scikit-learn                                                                                                    |
+| Web frontend         | React 18, TypeScript, Vite, Redux Toolkit, Tailwind CSS, shadcn/ui, Recharts                                                     |
+| Mobile frontend      | React Native, Expo, TypeScript, Redux Toolkit, React Native Paper                                                                |
+| Infrastructure       | Docker, Docker Compose, Kubernetes, Terraform, Ansible                                                                           |
+| Monitoring           | Prometheus, Grafana, Alertmanager                                                                                                |
+| CI/CD                | GitHub Actions                                                                                                                   |
+| Testing              | Jest (Node.js services, web, and mobile), pytest (Python services)                                                               |
 
-| Category            | Key Technologies                                                   | Description                                                                                                                                            |
-| :------------------ | :----------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Backend**         | Node.js, TypeScript, Express.js, NestJS                            | High-performance, scalable environment for microservices development.                                                                                  |
-| **Databases**       | PostgreSQL, MongoDB, Redis                                         | Polyglot persistence: PostgreSQL for transactional ACID operations, MongoDB for flexible analytics data, and Redis for caching and session management. |
-| **Messaging**       | RabbitMQ, Kafka                                                    | Message queue for reliable communication and event streaming for high-throughput data pipelines.                                                       |
-| **Web Frontend**    | React, TypeScript, Redux Toolkit, Material-UI, Tailwind CSS        | Modern stack for a feature-rich, responsive web dashboard.                                                                                             |
-| **Mobile Frontend** | React Native, Expo, Native Base                                    | Cross-platform development for iOS and Android with a focus on native performance.                                                                     |
-| **DevOps**          | Docker, Kubernetes, GitHub Actions, Prometheus, Grafana, ELK Stack | Full-stack CI/CD, container orchestration, and observability tools for production readiness.                                                           |
+## Architecture
 
----
+```
+Clients
+  ├── web-frontend (React, TypeScript)     ── HTTP/JSON ──┐
+  └── mobile-frontend (React Native)      ── HTTP/JSON ──┤
+                                                         ▼
+API Gateway (defined in Docker Compose; not buildable, no source in this repo)
+                                                         ▼
+Node.js services (Express, npm workspaces monorepo)
+  auth-service · payments-service (Stripe/PayPal/Square) · accounting-service
+  analytics-service · realtime-analytics-service (Postgres + MongoDB)
+  integration-service · multi-tenant-service · performance-service
+  (the last three aren't in the default Docker Compose stack)
+  Shared: common (Express app, Prisma client, Kafka client)
+  Data layer: PostgreSQL (per service), MongoDB, Redis, Kafka
 
-## Getting Started
-
-### Prerequisites
-
-Before setting up FinFlow, ensure you have the following installed:
-
-| Prerequisite       | Version |
-| :----------------- | :------ |
-| **Node.js**        | v16+    |
-| **Docker**         | Latest  |
-| **Docker Compose** | Latest  |
-| **PostgreSQL**     | v13+    |
-| **MongoDB**        | v5+     |
-| **Redis**          | v6+     |
-
-### Quick Setup
-
-The recommended way to set up the development environment is by using the provided setup script and Docker Compose:
-
-| Step                     | Command                                                                   | Description                                                     |
-| :----------------------- | :------------------------------------------------------------------------ | :-------------------------------------------------------------- |
-| **1. Clone Repository**  | `git clone https://github.com/quantsingularity/FinFlow.git && cd FinFlow` | Download the source code and navigate to the project directory. |
-| **2. Run Setup Script**  | `./setup_env.sh`                                                          | Installs dependencies and configures the local environment.     |
-| **3. Start Application** | `docker-compose up`                                                       | Starts all backend services, databases, and the API Gateway.    |
-
-**Access Points:**
-
-| Component                 | Endpoint                         |
-| :------------------------ | :------------------------------- |
-| **Web Frontend**          | `http://localhost:3000`          |
-| **API Gateway**           | `http://localhost:8080`          |
-| **Swagger Documentation** | `http://localhost:8080/api-docs` |
-
-### Manual Setup
-
-For individual service development, you will need to configure the environment variables in a `.env` file and start each service manually. Refer to the project's internal documentation for detailed instructions on starting the **Auth Service, Payments Service, Accounting Service, Analytics Service, and Credit Engine** individually.
-
----
-
-## API Documentation
-
-FinFlow provides comprehensive API documentation using OpenAPI/Swagger, accessible for each service when running locally.
-
-| Service                | Local Documentation Endpoint     |
-| :--------------------- | :------------------------------- |
-| **Auth Service**       | `http://localhost:3001/api-docs` |
-| **Payments Service**   | `http://localhost:3002/api-docs` |
-| **Accounting Service** | `http://localhost:3003/api-docs` |
-| **Analytics Service**  | `http://localhost:3004/api-docs` |
-| **Credit Engine**      | `http://localhost:3005/api-docs` |
-
-### API Examples
-
-**1. Login (Auth Service)**
-
-```bash
-curl -X POST http://localhost:3001/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email": "user@example.com", "password": "password123"}'
+Python services (FastAPI)
+  credit-engine (scikit-learn, trained on synthetic data)
+  ai-features-service · compliance-service · tax_automation · transaction-service
 ```
 
-_Response includes a JWT token and user details._
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detail.
 
-**2. Creating a Payment (Payments Service)**
+## Installation and Setup
+
+Prerequisites: Node.js 20+, Python 3.11+, and Docker.
 
 ```bash
-curl -X POST http://localhost:3002/api/payments \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -d '{
-    "amount": 100.00,
-    "currency": "usd",
-    "processorType": "stripe",
-    "source": "tok_visa",
-    "metadata": {
-      "orderId": "order_123"
-    }
-  }'
+git clone https://github.com/quantsingularity/FinFlow.git
+cd FinFlow
+
+# Node.js backend (installs all workspaces from the root manifest)
+cd code/backend
+npm install
+
+# Python services (each has its own requirements.txt)
+cd ../ml-services
+for svc in */; do
+  if [ -f "${svc}requirements.txt" ]; then
+    pip install -r "${svc}requirements.txt"
+  fi
+done
+cd ../..
+
+# Web frontend
+cd web-frontend && npm install && cd ..
+
+# Mobile frontend
+cd mobile-frontend && npm install && cd ..
 ```
 
-_Response provides the payment ID, status, and processor details._
+For an automated setup:
 
----
+```bash
+git clone https://github.com/quantsingularity/FinFlow.git
+cd FinFlow
+./scripts/finflow-setup.sh
+./scripts/finflow-dev.sh
+```
+
+Full, environment-specific instructions are in [docs/INSTALLATION.md](docs/INSTALLATION.md).
+
+## Running the Stack
+
+```bash
+# Auth, payments, accounting, and analytics services, their databases, Kafka,
+# credit-engine, and the web frontend (from infrastructure/, Docker required;
+# the api-gateway container will fail to build, since its source isn't in this repo)
+cd infrastructure
+docker compose up -d
+
+# Or run a single Node.js service directly (from code/backend/<service-name>)
+npm run start:dev
+
+# A Python service (from its own directory under code/ml-services)
+uvicorn src.main:app --reload --port 8005
+
+# Web dashboard (from web-frontend)
+npm run dev
+
+# Mobile app (from mobile-frontend)
+npm start
+```
+
+See [docs/USAGE.md](docs/USAGE.md) and [docs/CONFIGURATION.md](docs/CONFIGURATION.md).
+
+## API Surface
+
+Each Node.js service runs its own Express app; there is no unified gateway prefix currently working. Reach each service on its own port directly.
+
+| Service                      | What it's for                                                     |
+| :--------------------------- | :---------------------------------------------------------------- |
+| auth-service                 | Registration, login, session management                           |
+| payments-service             | Payment creation and processing across Stripe, PayPal, and Square |
+| accounting-service           | Double-entry ledger, journal entries, financial reports           |
+| analytics-service            | Metrics and dashboard data                                        |
+| realtime-analytics-service   | Streaming analytics, anomaly detection                            |
+| integration-service          | Third-party integrations                                          |
+| multi-tenant-service         | Tenant management                                                 |
+| performance-service          | Performance monitoring                                            |
+| credit-engine (Python)       | Credit scoring                                                    |
+| ai-features-service (Python) | AI-driven features                                                |
+| compliance-service (Python)  | Compliance checks                                                 |
+| tax_automation (Python)      | Tax calculation and reporting                                     |
+| transaction-service (Python) | Transaction processing                                            |
+
+Full request and response shapes are in [docs/API.md](docs/API.md).
 
 ## Testing
 
-FinFlow includes comprehensive testing across all services to ensure reliability and accuracy. The strategy covers unit tests, integration tests, and end-to-end tests.
+```bash
+# All Node.js workspaces (from code/backend)
+npm test
 
-### Test Coverage Summary
+# A single Node.js service (from code/backend)
+npm run test:auth
+npm run test:payments
+npm run test:accounting
+# and so on, per the scripts in code/backend/package.json
 
-The project maintains high test coverage across all critical components:
+# A Python service (from its own directory under code/ml-services)
+pytest
 
-| Service / Component    | Coverage | Critical Paths Tested                                          |
-| :--------------------- | :------- | :------------------------------------------------------------- |
-| **Payments Service**   | 97%      | Payment processing, multiple processors, refunds.              |
-| **Auth Service**       | 95%      | Authentication flows, token validation, OAuth integration.     |
-| **Accounting Service** | 94%      | Journal entries, financial reporting, double-entry validation. |
-| **Mobile Frontend**    | 96%      | All screens, Redux integration, navigation flows.              |
-| **Web Frontend**       | 90%      | UI components, Redux store, API services.                      |
-| **End-to-End Flows**   | 85%      | Critical user journeys across services.                        |
+# Web (from web-frontend)
+npm test
 
-### Running Tests
+# Mobile (from mobile-frontend)
+npm test
+```
 
-Tests can be run independently for each component:
-
-| Component            | Command (from component directory)     | Description                                          |
-| :------------------- | :------------------------------------- | :--------------------------------------------------- |
-| **Backend Services** | `npm test` or `npm test -- --coverage` | Runs unit and integration tests for the service.     |
-| **Web Frontend**     | `npm test` or `npm test -- --coverage` | Runs component, Redux store, and API service tests.  |
-| **Mobile Frontend**  | `npm test` or `npm test -- --coverage` | Runs tests for screens, components, and store logic. |
-| **End-to-End Tests** | `cd e2e && npm test`                   | Requires the application to be running locally.      |
-
-A combined coverage report for the entire project can be generated by running the `./run-tests.sh` script from the project root.
-
----
+Across the 8 Node.js services there are 15 test files (payments-service and accounting-service have the most, at 3 and 4 respectively). The 5 Python services have 9 test files between them, with transaction-service having the most at 4. The web dashboard has 6 test files; the mobile app has 12.
 
 ## CI/CD Pipeline
 
-FinFlow uses GitHub Actions for continuous integration and deployment:
+GitHub Actions (`.github/workflows/cicd.yml`) runs three jobs on push, pull request, and manual dispatch:
 
-| Stage                | Control Area                    | Institutional-Grade Detail                                                              |
-| :------------------- | :------------------------------ | :-------------------------------------------------------------------------------------- |
-| **Formatting Check** | Change Triggers                 | Enforced on all `push` and `pull_request` events to `main` and `develop`                |
-|                      | Manual Oversight                | On-demand execution via controlled `workflow_dispatch`                                  |
-|                      | Source Integrity                | Full repository checkout with complete Git history for auditability                     |
-|                      | Python Runtime Standardization  | Python 3.10 with deterministic dependency caching                                       |
-|                      | Backend Code Hygiene            | `autoflake` to detect unused imports/variables using non-mutating diff-based validation |
-|                      | Backend Style Compliance        | `black --check` to enforce institutional formatting standards                           |
-|                      | Non-Intrusive Validation        | Temporary workspace comparison to prevent unauthorized source modification              |
-|                      | Node.js Runtime Control         | Node.js 18 with locked dependency installation via `npm ci`                             |
-|                      | Web Frontend Formatting Control | Prettier checks for web-facing assets                                                   |
-|                      | Mobile Frontend Formatting      | Prettier enforcement for mobile application codebases                                   |
-|                      | Documentation Governance        | Repository-wide Markdown formatting enforcement                                         |
-|                      | Infrastructure Configuration    | Prettier validation for YAML/YML infrastructure definitions                             |
-|                      | Compliance Gate                 | Any formatting deviation fails the pipeline and blocks merge                            |
+| Job                 | Depends on          | What it does                                                                                      |
+| :------------------ | :------------------ | :------------------------------------------------------------------------------------------------ |
+| Code Quality Checks | -                   | Formatter checks across the repository                                                            |
+| Backend Tests       | Code Quality Checks | Runs `npm run test --workspaces` across all Node.js services with coverage and uploads the report |
+| Web Build           | Code Quality Checks | Builds the web frontend and uploads the build artifact (no test step)                             |
+
+There is currently no CI job for the Python services or the mobile app.
 
 ## Documentation
 
-| Document                    | Path                 | Description                                                    |
-| :-------------------------- | :------------------- | :------------------------------------------------------------- |
-| **README**                  | `README.md`          | High-level overview, project scope, and repository entry point |
-| **Installation Guide**      | `INSTALLATION.md`    | Step-by-step installation and environment setup                |
-| **API Reference**           | `API.md`             | Detailed documentation for all API endpoints                   |
-| **CLI Reference**           | `CLI.md`             | Command-line interface usage, commands, and examples           |
-| **User Guide**              | `USAGE.md`           | Comprehensive end-user guide, workflows, and examples          |
-| **Architecture Overview**   | `ARCHITECTURE.md`    | System architecture, components, and design rationale          |
-| **Configuration Guide**     | `CONFIGURATION.md`   | Configuration options, environment variables, and tuning       |
-| **Feature Matrix**          | `FEATURE_MATRIX.md`  | Feature coverage, capabilities, and roadmap alignment          |
-| **Contributing Guidelines** | `CONTRIBUTING.md`    | Contribution workflow, coding standards, and PR requirements   |
-| **Troubleshooting**         | `TROUBLESHOOTING.md` | Common issues, diagnostics, and remediation steps              |
+| Document                                           | Contents                               |
+| :------------------------------------------------- | :------------------------------------- |
+| [docs/README.md](docs/README.md)                   | Documentation index                    |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)       | System architecture                    |
+| [docs/API.md](docs/API.md)                         | REST API reference                     |
+| [docs/INSTALLATION.md](docs/INSTALLATION.md)       | Setup for all components               |
+| [docs/CONFIGURATION.md](docs/CONFIGURATION.md)     | Environment variables and config       |
+| [docs/USAGE.md](docs/USAGE.md)                     | Running and using the platform         |
+| [docs/CLI.md](docs/CLI.md)                         | Helper scripts reference               |
+| [docs/FEATURE_MATRIX.md](docs/FEATURE_MATRIX.md)   | Feature status, implemented vs planned |
+| [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Common issues and fixes                |
+| [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md)       | Contribution guide                     |
+| [docs/examples/](docs/examples/)                   | Worked examples                        |
+
+## Contributing
+
+See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md).
 
 ## License
 
-FinFlow is licensed under the **MIT License**.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
